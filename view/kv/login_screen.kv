@@ -1,0 +1,30 @@
+# mvc_counter_app/view/kv/counter_screen.kv
+
+<CounterScreen>: # Имя правила совпадает с именем класса в .py файле
+    name: "counter" # Имя экрана для ScreenManager
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: "20dp"
+        spacing: "20dp"
+        adaptive_height: True
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        MDLabel:
+            id: count_label # ID для доступа из Python
+            text: "0" # Начальный текст
+            halign: 'center'
+
+        MDButton:
+            style: "elevated"
+            text: "+"
+            pos_hint: {'center_x': 0.5}
+            # Вызывает метод контроллера при нажатии
+            on_release: app.counter_controller.handle_increment()
+
+        MDButton:
+            style: "elevated"
+            text: "-"
+            pos_hint: {'center_x': 0.5}
+            # Вызывает метод контроллера при нажатии
+            on_release: app.counter_controller.handle_decrement()

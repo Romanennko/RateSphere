@@ -12,9 +12,9 @@ from model.session_model import SessionModel
 from model.database_model import DatabaseModel, initialize_pool, close_pool
 
 SCREENS = {
+    "ratings": "Ratings",
     "signup": "SignUp",
     "login": "Login",
-    "ratings": "Ratings",
     "profile": "Profile",
     "add_item": "AddItem",
 }
@@ -93,7 +93,7 @@ class RateSphere(MDApp):
             print(f"    - {controller_module_name.replace('.', '/')}.py (Class {controller_class_name})")
         except AttributeError as e:
             print(f"  - ATTRIBUTE ERROR for screen '{screen_name}': {e}")
-            print(f"    Check that the classes '{view_class_name}' и '{controller_class_name}' exist in the corresponding files.")
+            print(f"    Check that the classes '{view_class_name}' and '{controller_class_name}' exist in the corresponding files.")
         except Exception as e:
             print(f"  - UNKNOWN ERROR while registering the screen '{screen_name}': {e}")
 

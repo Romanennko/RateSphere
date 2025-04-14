@@ -10,20 +10,30 @@ class SessionModel:
 
         try:
             app = App.get_running_app()
+            print("DEBUG: Got app instance:", app is not None)
             if app:
                 user_data_dir = app.user_data_dir
+                print("DEBUG: user_data_dir:", user_data_dir)
                 if not os.path.exists(user_data_dir):
+                    print("DEBUG: Creating user_data_dir...")
                     os.makedirs(user_data_dir)
+                    print("DEBUG: user_data_dir created.")
+                else:
+                    print("DEBUG: user_data_dir already exists.")
+
                 store_path = os.path.join(user_data_dir, 'session.json')
+                print("DEBUG: store_path:", store_path)
+                print("DEBUG: Initializing JsonStore...")
                 self.store = JsonStore(store_path)
                 print(f"Session store initialized at: {store_path}")
-
                 self._load_session()
             else:
                 print("Warning: Could not get running app instance in SessionModel.__init__")
 
         except Exception as e:
-            print(f"Error initializing session store: {e}")
+            print(f"!!! ERROR initializing session store: {e}")
+            import traceback
+            traceback.print_exc()
             self.store = None
 
     def _load_session(self):
@@ -46,14 +56,19 @@ class SessionModel:
 
     def _save_session(self):
         """Saves the current session data to the repository."""
-        if self.store and self._current_user_id and self._current_username:
+        if self.store is not None and self._current_user_id and self._current_username:
+            print("  - Save condition met. Calling store.put...")
             try:
                 self.store.put('user_info',
                                user_id=self._current_user_id,
                                username=self._current_username)
                 print(f"Session data saved for user '{self._current_username}'.")
             except Exception as e:
-                print(f"Error saving session data: {e}")
+                print(f"!!! ERROR saving session data: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("  - Save condition NOT met (store is None or user data is None/empty). Session NOT saved.")
 
     def _clear_session_data(self):
         """Clears session data in memory and storage."""

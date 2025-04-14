@@ -81,7 +81,6 @@ class SessionModel:
             except Exception as e:
                 print(f"Error deleting session data from store: {e}")
 
-
     def login(self, username, user_id):
         """Saves the data of the logged-in user and writes it to the repository."""
         self._current_username = username

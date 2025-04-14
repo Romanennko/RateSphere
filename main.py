@@ -24,7 +24,7 @@ class RateSphere(MDApp):
         super().__init__(**kwargs)
 
         Window.fullscreen = "auto"
-        # TODO create icon for program
+        self.icon = "assets/icons/icon.png"
 
         self.theme_cls.theme_style_switch_animation = True
         self.theme_cls.theme_style_switch_animation_duration = 0.8
@@ -37,27 +37,49 @@ class RateSphere(MDApp):
             'session': SessionModel(),
             'database': DatabaseModel(),
         }
-
         self.screen_manager = ScreenManager(transition=NoTransition())
 
+        print("--- Loading KV Files ---")
+        for screen_name in SCREENS.keys():
+             kv_file_path = os.path.join(KV_DIR, f"{screen_name}_screen.kv")
+             if os.path.exists(kv_file_path):
+                 try:
+                     Builder.load_file(kv_file_path)
+                     print(f"  - KV file loaded: {kv_file_path}")
+                 except Exception as e:
+                     print(f"  - ERROR loading KV file {kv_file_path}: {e}")
+             else:
+                 print(f"  - WARNING: KV file not found: {kv_file_path}")
+        print("--- KV Loading Complete ---")
+
+        print("--- Registering Screens ---")
+        created_screens = []
         for screen_name, class_prefix in SCREENS.items():
-            self._register_screen(screen_name, class_prefix)
+            view_instance = self._register_screen_modules(screen_name, class_prefix)
+            if view_instance:
+                created_screens.append(view_instance)
+        print("--- Screen Module Registration Complete ---")
+
+        print(f"--- Adding {len(created_screens)} screens to ScreenManager (Phase 2) ---")
+        for screen_instance in created_screens:
+             try:
+                 self.screen_manager.add_widget(screen_instance)
+                 print(f"  - Added screen: {screen_instance.name}")
+             except Exception as e:
+                 print(f"  - FAILED to add screen {screen_instance.name} to manager: {e}")
+        print(f"--- ScreenManager final screens: {self.screen_manager.screen_names} ---")
 
         return self.screen_manager
 
-    def _register_screen(self, screen_name: str, class_prefix: str):
+    def _register_screen_modules(self, screen_name: str, class_prefix: str):
         """
-        Dynamically loads KV, imports View and Controller,
-        creates their instances and registers.
+        Imports View and Controller, creates their instances, and associates them.
+        Returns the created view_instance or None on failure.
+        Assumes KV file has already been loaded in the build() method.
+        DOES NOT add the widget to the screen manager.
         """
-        print(f"Screen registration: '{screen_name}' (Classes: {class_prefix}...)")
-
-        kv_file_path = os.path.join(KV_DIR, f"{screen_name}_screen.kv")
-        if os.path.exists(kv_file_path):
-            Builder.load_file(kv_file_path)
-            print(f"  - KV file uploaded: {kv_file_path}")
-        else:
-            print(f"  - WARNING: KV file not found: {kv_file_path}")
+        print(f"Registering modules for: '{screen_name}' (Classes: {class_prefix}...)")
+        view_instance = None
 
         view_module_name = f"view.screens.{screen_name}_screen"
         view_class_name = f"{class_prefix}Screen"
@@ -81,21 +103,23 @@ class RateSphere(MDApp):
             print(f"  - Controller created: {controller_class_name}")
 
             setattr(self, controller_attr_name, controller_instance)
-            print(f"  - The controller is available as: app.{controller_attr_name}")
-
-            self.screen_manager.add_widget(view_instance)
-            print(f"  - Screen '{screen_name}' added to ScreenManager")
+            print(f"  - Controller available as: app.{controller_attr_name}")
 
         except ImportError as e:
             print(f"  - IMPORT FAILED for screen '{screen_name}': {e}")
-            print(f"    Please check the availability of files and the correctness of their names.:")
+            print(f"    Please check the availability of files and the correctness of their names:")
             print(f"    - {view_module_name.replace('.', '/')}.py (Class {view_class_name})")
             print(f"    - {controller_module_name.replace('.', '/')}.py (Class {controller_class_name})")
+            view_instance = None
         except AttributeError as e:
             print(f"  - ATTRIBUTE ERROR for screen '{screen_name}': {e}")
             print(f"    Check that the classes '{view_class_name}' and '{controller_class_name}' exist in the corresponding files.")
+            view_instance = None
         except Exception as e:
-            print(f"  - UNKNOWN ERROR while registering the screen '{screen_name}': {e}")
+            print(f"  - UNKNOWN ERROR while registering screen modules for '{screen_name}': {e}")
+            view_instance = None
+
+        return view_instance
 
 
     def on_start(self):

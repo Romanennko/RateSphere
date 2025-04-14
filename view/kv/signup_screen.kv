@@ -1,136 +1,144 @@
 <SignUpScreen>:
-    name: "signup"
-    md_bg_color: app.theme_cls.backgroundColor
-
-    MDCard:
-        style: "elevated"
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        size_hint: 0.2, None
-        height: self.minimum_height
-        padding: "30dp"
-        spacing: "20dp"
+    MDBoxLayout:
         orientation: 'vertical'
-        radius: [15,]
+        md_bg_color: app.theme_cls.backgroundColor
 
-        MDIcon:
-            icon: "account-plus-outline"
+        Widget:
+            size_hint_y: 1
+
+        MDCard:
+            style: "elevated"
             pos_hint: {"center_x": 0.5}
-            adaptive_height: True
-            padding: [0, dp(20), 0, dp(10)]
-
-        MDLabel:
-            text: "Signing up to RateSphere"
-            halign: 'center'
-            adaptive_height: True
-            padding: dp(5)
-
-        MDLabel:
-            id: error_label
-            text: ""
-            halign: "center"
-            theme_text_color: "Error"
-            adaptive_height: True
-            size_hint_y: None
-            height: self.texture_size[1]
-            padding: dp(5)
-
-        MDTextField:
-            id: username_input
-            mode: "outlined"
-            size_hint_x: None
-            width: dp(300)
-            pos_hint: {"center_x": 0.5}
-
-            MDTextFieldLeadingIcon:
-                icon: "account-circle-outline"
-
-            MDTextFieldHintText:
-                text: "Username"
-
-            MDTextFieldHelperText:
-                text: "Come up with a unique name"
-                mode: "on_focus"
-
-        MDTextField:
-            id: email_input
-            mode: "outlined"
-            size_hint_x: None
-            width: dp(300)
-            pos_hint: {"center_x": 0.5}
-
-            MDTextFieldLeadingIcon:
-                icon: "email-outline"
-
-            MDTextFieldHintText:
-                text: "Email"
-
-            MDTextFieldHelperText:
-                text: "Your current email"
-                mode: "on_focus"
-
-        MDTextField:
-            id: password_input
-            mode: "outlined"
-            size_hint_x: None
-            width: dp(300)
-            pos_hint: {"center_x": 0.5}
-            password: True
-
-            MDTextFieldLeadingIcon:
-                icon: "key-variant"
-
-            MDTextFieldHintText:
-                text: "Password"
-
-            MDTextFieldHelperText:
-                text: "Minimum 6 characters"
-                mode: "on_focus"
-
-            MDTextFieldTrailingIcon:
-                icon: "eye-off"
-                # TODO The logic of showing/hiding will need to be added to the Python code of the screen
-
-        MDTextField:
-            id: confirm_password_input
-            mode: "outlined"
-            size_hint_x: None
-            width: dp(300)
-            pos_hint: {"center_x": 0.5}
-            password: True
-
-            MDTextFieldLeadingIcon:
-                icon: "check-decagram-outline"
-
-            MDTextFieldHintText:
-                text: "Confirm your password"
-
-            MDTextFieldHelperText:
-                text: "Please enter your password again"
-                mode: "on_focus"
-
-            MDTextFieldTrailingIcon:
-                icon: "eye-off"
-                # TODO The logic of showing/hiding will need to be added to the Python code of the screen
-
-        MDBoxLayout:
+            size_hint: None, None
+            width: self.minimum_width
+            height: self.minimum_height
+            padding: "30dp"
+            spacing: "20dp"
             orientation: 'vertical'
-            spacing: "10dp"
-            adaptive_height: True
-            size_hint_y: None
-            padding: [dp(15), 0, 0, 0]
+            radius: [15,]
 
-            MDButton:
-                style: "filled"
+            MDIcon:
+                icon: "account-plus-outline"
                 pos_hint: {"center_x": 0.5}
-                on_release: app.signup_controller.do_signup(username_input.text, email_input.text, password_input.text, confirm_password_input.text)
+                adaptive_height: True
+                padding: [0, dp(20), 0, dp(10)]
 
-                MDButtonText:
-                    text: "Create an account"
+            MDLabel:
+                text: "Signing up to RateSphere"
+                halign: 'center'
+                adaptive_height: True
+                padding: dp(5)
 
-            MDButton:
-                style: "text"
+            MDLabel:
+                id: error_label
+                text: ""
+                halign: "center"
+                theme_text_color: "Error"
+                adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
+                padding: dp(5)
+
+            MDTextField:
+                id: username_input
+                mode: "outlined"
+                size_hint_x: None
+                width: dp(300)
                 pos_hint: {"center_x": 0.5}
-                on_release: app.signup_controller.go_to_login()
 
-                MDButtonText:
-                    text: "Already have an account? Log in"
+                MDTextFieldLeadingIcon:
+                    icon: "account-circle-outline"
+
+                MDTextFieldHintText:
+                    text: "Username"
+
+                MDTextFieldHelperText:
+                    text: "Come up with a unique name"
+                    mode: "on_focus"
+
+            MDTextField:
+                id: email_input
+                mode: "outlined"
+                size_hint_x: None
+                width: dp(300)
+                pos_hint: {"center_x": 0.5}
+
+                MDTextFieldLeadingIcon:
+                    icon: "email-outline"
+
+                MDTextFieldHintText:
+                    text: "Email"
+
+                MDTextFieldHelperText:
+                    text: "Your current email"
+                    mode: "on_focus"
+
+            MDTextField:
+                id: password_input
+                mode: "outlined"
+                size_hint_x: None
+                width: dp(300)
+                pos_hint: {"center_x": 0.5}
+                password: True
+
+                MDTextFieldLeadingIcon:
+                    icon: "key-variant"
+
+                MDTextFieldHintText:
+                    text: "Password"
+
+                MDTextFieldHelperText:
+                    text: "Minimum 6 characters"
+                    mode: "on_focus"
+
+                MDTextFieldTrailingIcon:
+                    icon: "eye-off"
+                    # TODO The logic of showing/hiding will need to be added to the Python code of the screen
+
+            MDTextField:
+                id: confirm_password_input
+                mode: "outlined"
+                size_hint_x: None
+                width: dp(300)
+                pos_hint: {"center_x": 0.5}
+                password: True
+
+                MDTextFieldLeadingIcon:
+                    icon: "check-decagram-outline"
+
+                MDTextFieldHintText:
+                    text: "Confirm your password"
+
+                MDTextFieldHelperText:
+                    text: "Please enter your password again"
+                    mode: "on_focus"
+
+                MDTextFieldTrailingIcon:
+                    icon: "eye-off"
+                    # TODO The logic of showing/hiding will need to be added to the Python code of the screen
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: "10dp"
+                adaptive_height: True
+                size_hint_y: None
+                padding: [dp(15), 0, 0, 0]
+
+                MDButton:
+                    style: "filled"
+                    pos_hint: {"center_x": 0.5}
+                    on_release: app.signup_controller.do_signup(username_input.text, email_input.text, password_input.text, confirm_password_input.text)
+
+                    MDButtonText:
+                        text: "Create an account"
+
+                MDButton:
+                    style: "text"
+                    pos_hint: {"center_x": 0.5}
+                    on_release: app.signup_controller.go_to_login()
+
+                    MDButtonText:
+                        text: "Already have an account? Log in"
+
+        Widget:
+            size_hint_y: 1

@@ -182,16 +182,27 @@
                     text: "Review (Optional)"
                     mode: "persistent"
 
-            MDButton:
-                style: "filled"
-                pos_hint: {"center_x": 0.937}
-                on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, item_type.text, status_button_text.text, root.get_rating(), item_review.text)
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: "20dp"
+                padding: "10dp"
+                pos_hint: {"center_x": 1.25}
+                size_hint_y: None
+                height: "48dp"
 
-                MDButtonText:
-                    text: "Save"
+                MDButton:
+                    style: "outlined"
+                    on_release: root.clear_fields()
 
-                MDButtonIcon:
-                    icon: "content-save"
+                    MDButtonText:
+                        text: "Cancel"
+
+                MDButton:
+                    style: "filled"
+                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, item_type.text, status_button_text.text, root.get_rating(), item_review.text)
+
+                    MDButtonText:
+                        text: "Save"
 
         Widget:
             size_hint_y: 1

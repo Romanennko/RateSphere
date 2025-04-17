@@ -6,6 +6,8 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, NoTransition
 from kivymd.app import MDApp
 
+from kivymd.uix.menu import MDDropdownMenu
+
 from config import BASE_DIR, KV_DIR, VIEW_DIR, CONTROLLER_DIR
 
 from model.session_model import SessionModel
@@ -23,13 +25,18 @@ class RateSphere(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.menu_navigation_data = []
+        self.menu_profile_data = []
+
         Window.fullscreen = "auto"
         self.icon = "assets/icons/icon.png"
 
         self.theme_cls.theme_style_switch_animation = True
         self.theme_cls.theme_style_switch_animation_duration = 0.8
-        self.theme_cls.theme_style = "Dark"          # Light
-        self.theme_cls.primary_palette = "Darkgrey"  # Indigo
+        # Light, Dark
+        self.theme_cls.theme_style = "Dark"
+        # Indigo, Darkgrey
+        self.theme_cls.primary_palette = "Darkgrey"
 
     def build(self):
         initialize_pool()
@@ -37,6 +44,39 @@ class RateSphere(MDApp):
             'session': SessionModel(),
             'database': DatabaseModel(),
         }
+
+        self.menu_navigation_data = [
+            {
+                "text": "Ratings",
+                "on_release": lambda: self.open_screen("ratings", "navigation"),
+                "leading_icon": "star-outline",
+            },
+            {
+                "text": "Add item",
+                "on_release": lambda: self.open_screen("add_item", "navigation"),
+                "leading_icon": "plus-circle-outline",
+            },
+            {
+                "text": "Exit",
+                "on_release": self.exit_app,
+                "leading_icon": "logout",
+            },
+        ]
+
+        self.menu_profile_data = [
+            {
+                "text": "Profile",
+                "on_release": lambda: self.open_screen("profile", "profile"),
+                "leading_icon": "account-circle-outline",
+            },
+            # TODO add switch between themes
+            {
+                "text": "Logout",
+                "on_release": lambda: self.logout(),
+                "leading_icon": "logout",
+            },
+        ]
+
         self.screen_manager = ScreenManager(transition=NoTransition())
 
         print("--- Loading KV Files ---")
@@ -142,6 +182,48 @@ class RateSphere(MDApp):
 
     def on_stop(self):
         close_pool()
+
+    def logout(self):
+        """Performs user logout: clears the session and goes to the login screen."""
+        print("Executing app logout sequence...")
+        if 'session' in self.models:
+            self.models['session'].logout()
+
+        if self.root and hasattr(self.root, 'current'):
+            self.root.current = 'login'
+        else:
+            print("Error: Cannot switch screen, root widget or screen_manager not found/ready.")
+
+        if hasattr(self, 'profileMenu') and self.profileMenu:
+            self.profileMenu.dismiss()
+            print("Profile menu dismissed.")
+
+    def open_app_bar_menu(self, menu_button):
+        self.appBarMenu = MDDropdownMenu(
+            caller=menu_button,
+            items=self.menu_navigation_data,
+        )
+        self.appBarMenu.open()
+
+    def open_profile_menu(self, menu_button):
+        self.profileMenu = MDDropdownMenu(
+            caller=menu_button,
+            items=self.menu_profile_data,
+        )
+        self.profileMenu.open()
+
+    def open_screen(self, screen_name, menu):
+        self.screen_manager.current = screen_name
+        if menu == "navigation" and self.appBarMenu:
+            self.appBarMenu.dismiss()
+        elif menu == "profile" and self.profileMenu:
+            self.profileMenu.dismiss()
+        else:
+            print(f"Warning: Trying to dismiss menu '{menu}' before it was created.")
+
+    @staticmethod
+    def exit_app():
+        MDApp.get_running_app().stop()
 
 
 if __name__ == '__main__':

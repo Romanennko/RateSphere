@@ -1,5 +1,3 @@
-from view.screens.add_item_screen import AddItemScreen
-
 class AddItemController:
     def __init__(self, models, view, app):
         self.data_model = models['database']    # Link to DatabaseModel
@@ -52,4 +50,4 @@ class AddItemController:
             self.view.show_error("Failed to add element. Please try again later.")
 
         if status_fields:
-            AddItemScreen.clear_fields(self.view)
+            self.view.clear_fields()

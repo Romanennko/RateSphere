@@ -23,9 +23,9 @@ CREATE TABLE rated_items (
 
     name VARCHAR(255) NOT NULL,
     alt_name VARCHAR(255),
-    item_type VARCHAR(100),
-    status item_status_enum,
-    rating SMALLINT CHECK (rating >= 1 AND rating <= 10),
+    item_type VARCHAR(100) NOT NULL,
+    status item_status_enum NOT NULL ,
+    rating SMALLINT CHECK (rating >= 1 AND rating <= 10) NOT NULL,
     review TEXT,
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

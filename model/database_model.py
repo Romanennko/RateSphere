@@ -93,9 +93,38 @@ class DatabaseModel:
 
     def get_user_items(self, user_id):
         sql = """
-            SELECT item_id, name, alt_name, item_type, status, rating, review, created_at
+            SELECT item_id, name, alt_name, item_type, status, rating, review, created_at, updated_at
             FROM rated_items
             WHERE user_id = %s
             ORDER BY created_at DESC;
         """
         return self.execute_query(sql, (user_id,), fetch="all")
+
+    def add_rated_item(self, user_id, name, item_type, status, rating, alt_name=None, review=None):
+        """
+        Adds a new rated item to the database.
+
+        Args:
+            user_id (int): ID of the user adding the element.
+            name (str): The main name of the element.
+            alt_name (str, optional): Alternative name. Defaults to None.
+            item_type (str, optional): Element type. Defaults to 'Other'.
+            status (str, optional): The status of the item (must match ENUM 'item_status_enum'). Defaults to 'Planned'.
+            rating (int, optional): Rating (1-10). Defaults to 1.
+            review (str, optional): Text review. Defaults to None.
+
+        Returns:
+            int or None: The ID of the added item if successful, otherwise None.
+        """
+        sql = """
+            INSERT INTO rated_items
+                (user_id, name, alt_name, item_type, status, rating, review)
+            VALUES
+                (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING item_id;
+        """
+        params = (user_id, name, alt_name, item_type, status, rating, review)
+
+        result = self.execute_query(sql, params, fetch="one")
+
+        return result[0] if result else None

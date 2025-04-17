@@ -1,3 +1,197 @@
 <AddItemScreen>:
-    MDScreen:
+    MDBoxLayout:
+        orientation: 'vertical'
+        theme_bg_color: "Custom"
         md_bg_color: app.theme_cls.backgroundColor
+
+        MDTopAppBar:
+            type: "small"
+
+            MDTopAppBarLeadingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "menu"
+                    on_release: app.open_app_bar_menu(self)
+
+            MDTopAppBarTitle:
+                text: "Add Item"
+
+            MDTopAppBarTrailingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "account-circle-outline"
+                    on_release: app.open_profile_menu(self)
+
+        Widget:
+            size_hint_y: 1
+
+        MDCard:
+            style: "elevated"
+            orientation: 'vertical'
+            pos_hint: {"center_x": .5, "center_y": .5}
+            size_hint: None, None
+            width: self.minimum_width
+            height: self.minimum_height
+            padding: "30dp"
+            spacing: "20dp"
+            radius: [15,]
+
+            MDLabel:
+                id: error_label
+                text: ""
+                halign: "center"
+                theme_text_color: "Error"
+                adaptive_height: True
+                size_hint_y: None
+                height: self.texture_size[1]
+                padding: dp(5)
+
+            MDTextField:
+                id: item_name
+                mode: "outlined"
+                size_hint_x: None
+                width: "780dp"
+                pos_hint: {"center_x": 0.5}
+
+                MDTextFieldLeadingIcon:
+                    icon: "pencil"
+
+                MDTextFieldHintText:
+                    text: "Item name"
+
+            MDTextField:
+                id: item_alt_name
+                mode: "outlined"
+                size_hint_x: 1
+                pos_hint: {"center_x": 0.5}
+
+                MDTextFieldLeadingIcon:
+                    icon: "pencil-outline"
+
+                MDTextFieldHintText:
+                    text: "Alternative item name"
+
+            MDTextField:
+                id: item_type
+                mode: "outlined"
+                size_hint_x: 1
+                pos_hint: {"center_x": 0.5}
+
+                MDTextFieldLeadingIcon:
+                    icon: "list-status"
+
+                MDTextFieldHintText:
+                    text: "Item type"
+
+            MDBoxLayout:
+                orientation: "horizontal"
+                spacing: "20dp"
+                padding: "10dp"
+                pos_hint: {"center_x": 0.4}
+                size_hint_y: None
+                height: "48dp"
+
+                MDLabel:
+                    text: "Status: "
+                    halign: "center"
+
+                MDButton:
+                    id: item_status
+                    pos_hint: {"center_x": 0.5}
+                    on_release: root.open_status_menu(self)
+
+                    MDButtonText:
+                        id: status_button_text
+                        text: "Select status"
+
+            MDLabel:
+                text: "Rating"
+                halign: "center"
+
+            MDSegmentedButton:
+                id: item_rating
+                size_hint_x: 1
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(1)
+
+                    MDSegmentButtonLabel:
+                        text: "1"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(2)
+
+                    MDSegmentButtonLabel:
+                        text: "2"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(3)
+
+                    MDSegmentButtonLabel:
+                        text: "3"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(4)
+
+                    MDSegmentButtonLabel:
+                        text: "4"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(5)
+
+                    MDSegmentButtonLabel:
+                        text: "5"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(6)
+
+                    MDSegmentButtonLabel:
+                        text: "6"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(7)
+
+                    MDSegmentButtonLabel:
+                        text: "7"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(8)
+
+                    MDSegmentButtonLabel:
+                        text: "8"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(9)
+
+                    MDSegmentButtonLabel:
+                        text: "9"
+
+                MDSegmentedButtonItem:
+                    on_active: if args[1]: root.on_rating_change(10)
+
+                    MDSegmentButtonLabel:
+                        text: "10"
+
+            MDTextField:
+                id: item_review
+                mode: "filled"
+                multiline: True
+                size_hint_x: 1
+                size_hint_y: None
+                height: dp(120)
+
+                MDTextFieldHelperText:
+                    text: "Review (Optional)"
+                    mode: "persistent"
+
+            MDButton:
+                style: "filled"
+                pos_hint: {"center_x": 0.937}
+                on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, item_type.text, status_button_text.text, root.get_rating(), item_review.text)
+
+                MDButtonText:
+                    text: "Save"
+
+                MDButtonIcon:
+                    icon: "content-save"
+
+        Widget:
+            size_hint_y: 1

@@ -2,13 +2,18 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.menu import MDDropdownMenu
 
 ITEM_STATUSES = ['Completed', 'In Progress', 'Planned', 'Dropped', 'Ongoing']
+ITEM_TYPES = ['Movie', 'Manga', 'Manhwa', 'Manhua', 'Game', 'Anime', 'Cartoon', 'Series', 'Book', 'Board game']
 
 class AddItemScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.rating = None
+
         self.status_menu = None
         self.status_menu_items = self._create_menu_items(ITEM_STATUSES, self._set_status)
+
+        self.type_menu = None
+        self.type_menu_items = self._create_menu_items(ITEM_TYPES, self._set_type)
 
     def clear_fields(self):
         """Clears all input fields and resets states."""
@@ -44,6 +49,16 @@ class AddItemScreen(MDScreen):
         self.status_menu.caller = caller_widget
         self.status_menu.open()
 
+    def open_type_menu(self, caller_widget):
+        # TODO [WARNING] Deprecated property "<NumericProperty name=padding_x>" of object "<kivymd.uix.label.label.MDLabel object at 0x0000021DE052D710>" was accessed, it will be removed in a future version
+        if not self.type_menu:
+            self.type_menu = MDDropdownMenu(
+                caller=caller_widget,
+                items=self.type_menu_items,
+            )
+        self.type_menu.caller = caller_widget
+        self.type_menu.open()
+
     def _set_status(self, selected_status):
         if hasattr(self.ids, 'status_button_text'):
             self.ids.status_button_text.text = selected_status
@@ -51,6 +66,14 @@ class AddItemScreen(MDScreen):
             print("Warning: status_button_text ID not found")
         if self.status_menu:
             self.status_menu.dismiss()
+
+    def _set_type(self, selected_type):
+        if hasattr(self.ids, 'type_button_text'):
+            self.ids.type_button_text.text = selected_type
+        else:
+            print("Warning: type_button_text ID not found")
+        if self.type_menu:
+            self.type_menu.dismiss()
 
     def on_rating_change(self, rating_value):
         self.rating = rating_value

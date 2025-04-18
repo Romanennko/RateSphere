@@ -17,13 +17,26 @@ CREATE TYPE item_status_enum AS ENUM (
     'Ongoing'
 );
 
+CREATE TYPE item_content_type_enum AS ENUM (
+    'Movie',
+    'Book',
+    'Manga',
+    'Game',
+    'Anime',
+    'Manhwa',
+    'Manhua',
+    'Cartoon',
+    'Series',
+    'Board game'
+);
+
 CREATE TABLE rated_items (
     item_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
 
     name VARCHAR(255) NOT NULL,
     alt_name VARCHAR(255),
-    item_type VARCHAR(100) NOT NULL,
+    item_type item_content_type_enum NOT NULL,
     status item_status_enum NOT NULL ,
     rating SMALLINT CHECK (rating >= 1 AND rating <= 10) NOT NULL,
     review TEXT,
@@ -52,4 +65,8 @@ $$ language 'plpgsql';
 
 CREATE TRIGGER update_item_updated_at
 BEFORE UPDATE ON rated_items
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_updated_at
+BEFORE UPDATE ON users
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

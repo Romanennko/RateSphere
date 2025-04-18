@@ -91,12 +91,22 @@ class DatabaseModel:
         sql = "SELECT user_id, username, email, password_hash FROM users WHERE email = %s;"
         return self.execute_query(sql, (email,), fetch="one")
 
-    def get_user_items(self, user_id):
-        sql = """
+    def get_user_items(self, user_id, sort_by='created_at', sort_order='DESC'):
+        """Retrieves all the rated items for the user with the ability to sort."""
+        allowed_sort_columns = ['name', 'item_type', 'status', 'rating', 'created_at', 'updated_at']
+        if sort_by not in allowed_sort_columns:
+            sort_by = 'created_at'
+
+        if sort_order.upper() not in ['ASC', 'DESC']:
+            sort_order = 'DESC'
+
+        order_by_clause = f"ORDER BY {sort_by} {sort_order.upper()}"
+
+        sql = f"""
             SELECT item_id, name, alt_name, item_type, status, rating, review, created_at, updated_at
             FROM rated_items
             WHERE user_id = %s
-            ORDER BY created_at DESC;
+            {order_by_clause};
         """
         return self.execute_query(sql, (user_id,), fetch="all")
 

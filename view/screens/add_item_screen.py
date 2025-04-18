@@ -40,7 +40,6 @@ class AddItemScreen(MDScreen):
         ]
 
     def open_status_menu(self, caller_widget):
-        # TODO [WARNING] Deprecated property "<NumericProperty name=padding_x>" of object "<kivymd.uix.label.label.MDLabel object at 0x0000021DE052D710>" was accessed, it will be removed in a future version
         if not self.status_menu:
             self.status_menu = MDDropdownMenu(
                 caller=caller_widget,
@@ -50,7 +49,6 @@ class AddItemScreen(MDScreen):
         self.status_menu.open()
 
     def open_type_menu(self, caller_widget):
-        # TODO [WARNING] Deprecated property "<NumericProperty name=padding_x>" of object "<kivymd.uix.label.label.MDLabel object at 0x0000021DE052D710>" was accessed, it will be removed in a future version
         if not self.type_menu:
             self.type_menu = MDDropdownMenu(
                 caller=caller_widget,

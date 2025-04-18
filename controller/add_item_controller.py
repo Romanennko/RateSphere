@@ -42,9 +42,6 @@ class AddItemController:
         if new_item_id:
             print(f"New element added successfully with ID: {new_item_id}")
             self.app.screen_manager.current = "ratings"
-            # TODO add update list
-            # if hasattr(self.app, 'ratings_controller'):
-            #    self.app.ratings_controller.load_items()
             status_fields = True
         else:
             self.view.show_error("Failed to add element. Please try again later.")

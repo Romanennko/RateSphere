@@ -69,29 +69,22 @@
                 MDTextFieldHintText:
                     text: "Alternative item name"
 
-            MDTextField:
-                id: item_type
-                mode: "outlined"
-                size_hint_x: 1
-                pos_hint: {"center_x": 0.5}
-
-                MDTextFieldLeadingIcon:
-                    icon: "list-status"
-
-                MDTextFieldHintText:
-                    text: "Item type"
-
             MDBoxLayout:
                 orientation: "horizontal"
                 spacing: "20dp"
                 padding: "10dp"
-                pos_hint: {"center_x": 0.4}
+                pos_hint: {"center_x": 0.5}
                 size_hint_y: None
                 height: "48dp"
 
-                MDLabel:
-                    text: "Status: "
-                    halign: "center"
+                MDButton:
+                    id: item_type
+                    pos_hint: {"center_x": 0.5}
+                    on_release: root.open_type_menu(self)
+
+                    MDButtonText:
+                        id: type_button_text
+                        text: "Select type"
 
                 MDButton:
                     id: item_status
@@ -199,7 +192,7 @@
 
                 MDButton:
                     style: "filled"
-                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, item_type.text, status_button_text.text, root.get_rating(), item_review.text)
+                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, type_button_text.text, status_button_text.text, root.get_rating(), item_review.text)
 
                     MDButtonText:
                         text: "Save"

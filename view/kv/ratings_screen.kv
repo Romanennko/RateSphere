@@ -1,9 +1,49 @@
-<RatingsScreen>:
-    md_bg_color: app.theme_cls.backgroundColor
+<RatingRowWidget@MDBoxLayout>:
+    name_text: ""
+    type_text: ""
+    status_text: ""
+    rating_text: ""
+    review_text: ""
 
+    size_hint_y: None
+    height: "48dp"
+    padding: "5dp"
+    spacing: "5dp"
+
+    MDLabel:
+        text: root.name_text
+        size_hint_x: 0.3
+        halign: 'left'
+        valign: 'center'
+
+    MDLabel:
+        text: root.type_text
+        size_hint_x: 0.2
+        halign: 'center'
+        valign: 'center'
+
+    MDLabel:
+        text: root.status_text
+        size_hint_x: 0.2
+        halign: 'center'
+        valign: 'center'
+
+    MDLabel:
+        text: root.rating_text
+        size_hint_x: 0.1
+        halign: 'center'
+        valign: 'center'
+
+    MDLabel:
+        text: root.review_text
+        size_hint_x: 0.2
+        halign: 'center'
+        valign: 'center'
+
+<RatingsScreen>:
     MDBoxLayout:
         orientation: "vertical"
-
+        md_bg_color: app.theme_cls.backgroundColor
 
         MDTopAppBar:
             type: "small"
@@ -21,391 +61,75 @@
                     icon: "account-circle-outline"
                     on_release: app.open_profile_menu(self)
 
-        MDScrollView:
-            MDList:
-                id: ratings_list
-                padding: "10dp"
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
-
-                MDListItem:
-
-                    MDListItemLeadingIcon:
-                        icon: "account"
-
-                    MDListItemHeadlineText:
-                        text: "Headline"
-
-                    MDListItemSupportingText:
-                        text: "Supporting text"
-
-                    MDListItemTertiaryText:
-                        text: "Tertiary text"
-
-                    MDListItemTrailingCheckbox:
+        MDBoxLayout:
+            id: header_box
+            size_hint_y: None
+            height: "40dp"
+            padding: ["5dp", 0, "5dp", 0]
+            spacing: "5dp"
+            md_bg_color: app.theme_cls.surfaceContainerHighestColor
+
+            MDButton:
+                style: "text"
+                size_hint_x: 0.3
+                halign: 'left'
+                padding: ["8dp", 0]
+                # TODO on_release: app.ratings_controller.sort_by('name')
+
+                MDButtonText:
+                    text: "Name"
+                    halign: 'left'
+
+            MDButton:
+                style: "text"
+                size_hint_x: 0.2
+                halign: 'center'
+                # TODO on_release: app.ratings_controller.sort_by('item_type')
+
+                MDButtonText:
+                    text: "Type"
+                    halign: 'center'
+
+            MDButton:
+                style: "text"
+                size_hint_x: 0.2
+                halign: 'center'
+                # TODO on_release: app.ratings_controller.sort_by('status')
+
+                MDButtonText:
+                    text: "Status"
+                    halign: "center"
+
+            MDButton:
+                style: "text"
+                size_hint_x: 0.1
+                halign: 'center'
+                # TODO on_release: app.ratings_controller.sort_by('rating')
+
+                MDButtonText:
+                    text: "Rating"
+                    halign: 'center'
+
+            MDButton:
+                style: "text"
+                size_hint_x: 0.2
+                halign: 'center'
+
+                MDButtonText:
+                    text: "Review"
+                    halign: 'center'
+
+        MDDivider:
+
+        RecycleView:
+            id: ratings_rv
+            viewclass: 'RatingRowWidget'
+            key_size: 'height'
+
+            RecycleBoxLayout:
+                default_size: None, "48dp"
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: "2dp"

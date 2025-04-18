@@ -33,10 +33,6 @@ class RateSphere(MDApp):
 
         self.theme_cls.theme_style_switch_animation = True
         self.theme_cls.theme_style_switch_animation_duration = 0.8
-        # Light, Dark
-        self.theme_cls.theme_style = "Dark"
-        # Indigo, Darkgrey
-        self.theme_cls.primary_palette = "Darkgrey"
 
     def build(self):
         initialize_pool()
@@ -44,6 +40,12 @@ class RateSphere(MDApp):
             'session': SessionModel(),
             'database': DatabaseModel(),
         }
+
+        saved_theme = self.models['session'].get_preferred_theme_style()
+        print(f"Applying initial theme: {saved_theme}")
+        self.theme_cls.theme_style = saved_theme
+        self.theme_cls.primary_palette = "Darkgrey"
+        self.theme_cls.accent_palette = "Indigo"
 
         self.menu_navigation_data = [
             {
@@ -69,7 +71,11 @@ class RateSphere(MDApp):
                 "on_release": lambda: self.open_screen("profile", "profile"),
                 "leading_icon": "account-circle-outline",
             },
-            # TODO add switch between themes
+            {
+                "text": "Switch theme",
+                "on_release": lambda: self.switch_theme_style(),
+                "leading_icon": "theme-light-dark",
+            },
             {
                 "text": "Logout",
                 "on_release": lambda: self.logout(),
@@ -220,6 +226,17 @@ class RateSphere(MDApp):
             self.profileMenu.dismiss()
         else:
             print(f"Warning: Trying to dismiss menu '{menu}' before it was created.")
+
+    def switch_theme_style(self):
+        """Switches the theme style (Light/Dark) and saves the selection."""
+        current_style = self.theme_cls.theme_style
+        self.theme_cls.theme_style = "Dark" if current_style == "Light" else "Light"
+        print(f"Theme switched to: {self.theme_cls.theme_style}")
+
+        self.models['session'].save_theme_style(self.theme_cls.theme_style)
+
+        if hasattr(self, 'profileMenu') and self.profileMenu:
+            self.profileMenu.dismiss()
 
     @staticmethod
     def exit_app():

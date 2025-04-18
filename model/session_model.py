@@ -6,6 +6,9 @@ class SessionModel:
     def __init__(self):
         self._current_user_id = None
         self._current_username = None
+
+        self.preferred_theme_style = "Light"
+
         self.store = None
 
         try:
@@ -27,6 +30,7 @@ class SessionModel:
                 self.store = JsonStore(store_path)
                 print(f"Session store initialized at: {store_path}")
                 self._load_session()
+                self._load_theme_preference()
             else:
                 print("Warning: Could not get running app instance in SessionModel.__init__")
 
@@ -53,6 +57,36 @@ class SessionModel:
             except Exception as e:
                 print(f"Error loading session data from store: {e}")
                 self._clear_session_data()
+
+    def _load_theme_preference(self):
+        """Loads the theme preference from the repository."""
+        if self.store and self.store.exists('theme_style'):
+            try:
+                stored_theme_data = self.store.get('theme_style')
+                stored_theme = stored_theme_data.get('style')
+                if stored_theme in ["Light", "Dark"]:
+                    self.preferred_theme_style = stored_theme
+                    print(f"Theme preference loaded: {self.preferred_theme_style}")
+                else:
+                    print("Warning: Invalid theme style found in store.")
+                    self.save_theme_style(self.preferred_theme_style)
+            except Exception as e:
+                print(f"Error loading theme preference: {e}")
+
+    def save_theme_style(self, theme_style):
+        """Saves the selected theme style to the repository."""
+        if self.store is not None:
+            try:
+                self.store.put('theme_style', style=theme_style)
+                print(f"Theme preference saved: {theme_style}")
+            except Exception as e:
+                print(f"Error saving theme preference: {e}")
+        else:
+            print("Error: Cannot save theme, session store not initialized.")
+
+    def get_preferred_theme_style(self):
+        """Returns the loaded or default theme style."""
+        return self.preferred_theme_style
 
     def _save_session(self):
         """Saves the current session data to the repository."""

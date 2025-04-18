@@ -11,12 +11,20 @@ class AddItemScreen(MDScreen):
         self.status_menu_items = self._create_menu_items(ITEM_STATUSES, self._set_status)
 
     def clear_fields(self):
+        """Clears all input fields and resets states."""
         self.ids.item_name.text = ''
         self.ids.item_alt_name.text = ''
         self.ids.item_type.text = ''
-        self.ids.status_button_text.text = "Select status"
+
+        if hasattr(self.ids, 'status_button_text'):
+            self.ids.status_button_text.text = "Select status"
+
         self.rating = None
         self.ids.item_review.text = ''
+
+        if hasattr(self.ids, 'error_label'):
+            self.ids.error_label.text = ''
+        print("AddItemScreen fields cleared.")
 
     def _create_menu_items(self, items_list, callback):
         return [
@@ -37,12 +45,15 @@ class AddItemScreen(MDScreen):
         self.status_menu.open()
 
     def _set_status(self, selected_status):
-        self.ids.status_button_text.text = selected_status
+        if hasattr(self.ids, 'status_button_text'):
+            self.ids.status_button_text.text = selected_status
+        else:
+            print("Warning: status_button_text ID not found")
         if self.status_menu:
             self.status_menu.dismiss()
 
-    def on_rating_change(self, rating):
-        self.rating = rating
+    def on_rating_change(self, rating_value):
+        self.rating = rating_value
 
     def get_rating(self):
         return self.rating

@@ -32,7 +32,7 @@ Make sure you have the following installed before installing:
 
 1.  **Clone the repository:**
     ```bash
-    git clone <URL вашего репозитория>
+    git clone https://github.com/Romanennko/RateSphere
     cd RateSphere
     ```
 

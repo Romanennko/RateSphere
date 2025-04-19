@@ -3,7 +3,11 @@ from kivymd.uix.boxlayout import MDBoxLayout
 
 from kivymd.app import MDApp
 
+import logging
+
 from kivy.properties import StringProperty, NumericProperty
+
+logger = logging.getLogger(__name__)
 
 class RatingRowWidget(MDBoxLayout):
     name_text = StringProperty("")
@@ -15,16 +19,16 @@ class RatingRowWidget(MDBoxLayout):
 
 class RatingsScreen(MDScreen):
     def on_enter(self, *args):
-        print(f"=====>> ENTERING screen: {self.name}")
+        logger.debug(f"=====>> ENTERING screen: {self.name}")
         app = MDApp.get_running_app()
         if hasattr(app, 'ratings_controller'):
             app.ratings_controller.load_items()
         else:
-             print("RatingsScreen Error: ratings_controller not found in app.")
+             logger.debug("RatingsScreen Error: ratings_controller not found in app.")
         return super().on_enter(*args)
 
     def on_leave(self, *args):
-        print(f"<<===== LEAVING screen: {self.name}")
+        logger.debug(f"<<===== LEAVING screen: {self.name}")
         return super().on_leave(*args)
 
     def update_data(self, rv_data_from_controller):
@@ -46,11 +50,12 @@ class RatingsScreen(MDScreen):
                     # "item_id": item_dict.get('item_id') # If add the item_id property
                 })
 
-            print(f"RatingsScreen: Updating RecycleView data with {len(formatted_data)} items.")
+            logger.debug(f"RatingsScreen: Updating RecycleView data with {len(formatted_data)} items.")
             self.ids.ratings_rv.data = formatted_data
             self.ids.ratings_rv.refresh_from_data()
         else:
-             print("RatingsScreen Error: ratings_rv ID not found.")
+             logger.error("RatingsScreen Error: ratings_rv ID not found.")
 
     def show_error(self, message):
-        print(f"RatingsScreen Error: {message}")
+        """Displays an error message."""
+        logger.error(f"RatingsScreen Error: {message}")

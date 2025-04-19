@@ -1,6 +1,10 @@
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.menu import MDDropdownMenu
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 ITEM_STATUSES = ['Completed', 'In Progress', 'Planned', 'Dropped', 'Ongoing']
 ITEM_TYPES = ['Movie', 'Manga', 'Manhwa', 'Manhua', 'Game', 'Anime', 'Cartoon', 'Series', 'Book', 'Board game']
 
@@ -29,7 +33,7 @@ class AddItemScreen(MDScreen):
 
         if hasattr(self.ids, 'error_label'):
             self.ids.error_label.text = ''
-        print("AddItemScreen fields cleared.")
+        logger.debug("AddItemScreen fields cleared.")
 
     def _create_menu_items(self, items_list, callback):
         return [
@@ -61,7 +65,7 @@ class AddItemScreen(MDScreen):
         if hasattr(self.ids, 'status_button_text'):
             self.ids.status_button_text.text = selected_status
         else:
-            print("Warning: status_button_text ID not found")
+            logger.warning("Status_button_text ID not found")
         if self.status_menu:
             self.status_menu.dismiss()
 
@@ -69,7 +73,7 @@ class AddItemScreen(MDScreen):
         if hasattr(self.ids, 'type_button_text'):
             self.ids.type_button_text.text = selected_type
         else:
-            print("Warning: type_button_text ID not found")
+            logger.warning("Type_button_text ID not found")
         if self.type_menu:
             self.type_menu.dismiss()
 

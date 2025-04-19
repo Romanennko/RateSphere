@@ -26,11 +26,11 @@ class RatingsController:
         try:
             items_raw = self.data_model.get_user_items(
                 user_id=user_id,
+                sort_by=self.current_sort_column,
+                sort_order=self.current_sort_order,
                 use_dict_cursor=True,
-                # TODO sort_by=self.current_sort_column, # We'll pass it on later
-                # TODO sort_order=self.current_sort_order # We'll pass it on later
             )
-            # The order of columns in get_user_items: item_id, name, alt_name, item_type, status, rating, review, created_at, updated_at
+
             rv_data = []
             if items_raw:
                 for row in items_raw:
@@ -42,14 +42,40 @@ class RatingsController:
                         'status': row['status'],
                         'rating': row['rating'],
                         'review': row['review'],
-                        # 'created_at': row[7], # Can be added if you need to display
-                        # 'updated_at': row[8], # Can be added if you need to display
                         'viewclass': 'RatingRowWidget'
                     })
 
             self.view.update_data(rv_data)
         except DatabaseError as e:
             logger.exception(f"Database error while loading items: {e}")
+            self.view.show_error("Failed to load ratings. Check logs.")
+            self.view.update_data([])
         except Exception as e:
             logger.exception(f"RatingsController Error loading items: {e}")
+            self.view.show_error("An unexpected error occurred while loading ratings.")
             self.view.update_data([])
+
+    def sort_by(self, column_name):
+        """
+        Sets the sorting column and order, then reloads items.
+        Toggles order if the same column is clicked again.
+        """
+        logger.debug(f"Sort requested by column: {column_name}")
+
+        allowed_sort_columns = ['name', 'item_type', 'status', 'rating', 'created_at', 'updated_at']
+        if column_name not in allowed_sort_columns:
+            logger.warning(f"Attempted to sort by invalid column: {column_name}")
+            return
+
+        if self.current_sort_column == column_name:
+            self.current_sort_order = 'DESC' if self.current_sort_order == 'ASC' else 'ASC'
+            logger.debug(f"Toggled sort order to: {self.current_sort_order}")
+        else:
+            self.current_sort_column = column_name
+            if column_name in ['rating', 'created_at', 'updated_at']:
+                self.current_sort_order = 'DESC'
+            else:
+                self.current_sort_order = 'ASC'
+            logger.debug(f"Set sort column to: {self.current_sort_column}, order: {self.current_sort_order}")
+
+        self.load_items()

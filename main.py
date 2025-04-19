@@ -215,11 +215,11 @@ class RateSphere(MDApp):
         else:
             logger.error("Cannot switch screen, root widget or screen_manager not found/ready during logout.")
 
-        if hasattr(self, 'profileMenu') and self.profileMenu and self.profileMenu.is_open:
+        if hasattr(self, 'profileMenu') and self.profileMenu:
             self.profileMenu.dismiss()
             logger.debug("Profile menu dismissed during logout.")
 
-        if hasattr(self, 'appBarMenu') and self.appBarMenu and self.appBarMenu.is_open:
+        if hasattr(self, 'appBarMenu') and self.appBarMenu:
             self.appBarMenu.dismiss()
             logger.debug("App bar menu dismissed during logout.")
 

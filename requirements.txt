@@ -1,0 +1,25 @@
+asyncgui==0.6.3
+asynckivy==0.6.4
+bcrypt==4.3.0
+certifi==2025.1.31
+charset-normalizer==3.4.1
+docutils==0.21.2
+dotenv==0.9.9
+filetype==1.2.0
+idna==3.10
+Kivy==2.3.1
+kivy-deps.angle==0.4.0
+kivy-deps.glew==0.3.1
+Kivy-Garden==0.1.5
+kivy_deps.sdl2==0.8.0
+kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip#sha256=ab18d4cc36e2d53ea87f463d01299c39c75bae66cc1950f9bc6397f23317c848
+materialyoucolor==2.0.10
+pillow==11.1.0
+psycopg2==2.9.10
+psycopg2-binary==2.9.10
+Pygments==2.19.1
+pypiwin32==223
+python-dotenv==1.1.0
+pywin32==310
+requests==2.32.3
+urllib3==2.4.0

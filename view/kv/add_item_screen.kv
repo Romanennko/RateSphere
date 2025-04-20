@@ -1,3 +1,5 @@
+#:import AddItemScreen view.screens.add_item_screen.AddItemScreen
+
 <AddItemScreen>:
     MDBoxLayout:
         orientation: 'vertical'
@@ -95,73 +97,16 @@
                         id: status_button_text
                         text: "Select status"
 
-            MDLabel:
-                text: "Rating"
-                halign: "center"
+                MDButton:
+                    id: rating_button
+                    style: "outlined"
+                    pos_hint: {"center_x": 0.5}
+                    on_release: root.open_rating_dialog()
+                    size_hint_x: 0.8
 
-            MDSegmentedButton:
-                id: item_rating
-                size_hint_x: 1
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(1)
-
-                    MDSegmentButtonLabel:
-                        text: "1"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(2)
-
-                    MDSegmentButtonLabel:
-                        text: "2"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(3)
-
-                    MDSegmentButtonLabel:
-                        text: "3"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(4)
-
-                    MDSegmentButtonLabel:
-                        text: "4"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(5)
-
-                    MDSegmentButtonLabel:
-                        text: "5"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(6)
-
-                    MDSegmentButtonLabel:
-                        text: "6"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(7)
-
-                    MDSegmentButtonLabel:
-                        text: "7"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(8)
-
-                    MDSegmentButtonLabel:
-                        text: "8"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(9)
-
-                    MDSegmentButtonLabel:
-                        text: "9"
-
-                MDSegmentedButtonItem:
-                    on_active: if args[1]: root.on_rating_change(10)
-
-                    MDSegmentButtonLabel:
-                        text: "10"
+                    MDButtonText:
+                        id: rating_button_text
+                        text: "Set Rating"
 
             MDTextField:
                 id: item_review
@@ -192,10 +137,42 @@
 
                 MDButton:
                     style: "filled"
-                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, type_button_text.text, status_button_text.text, root.get_rating(), item_review.text)
+                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, type_button_text.text, status_button_text.text, item_review.text, root.rating_data)
 
                     MDButtonText:
                         text: "Save"
 
         Widget:
             size_hint_y: 1
+
+<CriterionRatingRow@MDBoxLayout>:
+    criterion_id: None
+    criterion_name: ""
+    rating_value: 0.0
+    adaptive_height: True
+    spacing: "10dp"
+    padding: "5dp"
+
+    MDLabel:
+        text: root.criterion_name
+        size_hint_x: 0.4
+        adaptive_height: True
+        pos_hint: {"center_y": 0.5}
+
+    MDSlider:
+        id: slider
+        min: 1
+        max: 10
+        step: 0.5
+        value: root.rating_value if root.rating_value >= 1 else 5
+        size_hint_x: 0.5
+        value_track: True
+        on_value: root.rating_value = self.value
+
+    MDLabel:
+        id: slider_label
+        text: f"{root.rating_value:.1f}" if root.rating_value >= 1 else "N/A"
+        size_hint_x: 0.1
+        halign: "right"
+        adaptive_height: True
+        pos_hint: {"center_y": 0.5}

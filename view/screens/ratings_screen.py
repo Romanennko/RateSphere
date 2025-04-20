@@ -210,19 +210,43 @@ class RatingsScreen(MDScreen):
                     on_release=lambda *args: self.confirm_delete_item(item_data)
                 ),
                 MDButton(
+                    MDButtonText(text="EDIT"),
+                    style="text",
+                    on_release=lambda *args, data=item_data: self._go_to_edit_item(data)
+                ),
+                MDButton(
                     MDButtonText(text="Close"),
                     style="text",
                     on_release=lambda *args: self.dialog.dismiss()
                 ),
                 spacing="8dp",
-                pos_hint={'center_x': 0.9}
             ),
             size_hint=(0.8, None),
             on_dismiss=lambda *args: setattr(self, 'dialog', None)
         )
 
-        logger.debug(f"Showing details for item: {item_data.get('name')}")
+        logger.debug(f"Showing details for item: {item_data.get('name')} (ID: {item_data.get('item_id')})")
         self.dialog.open()
+
+    def _go_to_edit_item(self, item_data_to_edit):
+        """Closes details dialog, loads data into AddItemScreen, and switches screen."""
+        logger.info(f"Edit requested for item ID: {item_data_to_edit.get('item_id')}")
+
+        if self.dialog:
+            self.dialog.dismiss()
+
+        app = MDApp.get_running_app()
+        try:
+            add_screen = app.root.get_screen('add_item')
+
+            add_screen.load_item_for_edit(item_data_to_edit)
+
+            app.screen_manager.current = 'add_item'
+            logger.info(f"Switched to AddItemScreen in edit mode for item ID: {item_data_to_edit.get('item_id')}")
+
+        except Exception as e:
+            logger.exception("Error occurred while trying to switch to edit screen.")
+            self.show_error("Error preparing edit screen.")
 
     def confirm_delete_item(self, item_data):
         """Shows a confirmation dialog before deleting an item."""

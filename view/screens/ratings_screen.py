@@ -62,7 +62,6 @@ class RatingsScreen(MDScreen):
         if hasattr(self.ids, 'ratings_rv'):
             formatted_data = []
             for item_dict in rv_data_from_controller:
-                review_display = "..." if item_dict.get('review') else "" # Show ... if there is a review
                 formatted_data.append({
                     "name_text": str(item_dict.get('name', '')),
                     "type_text": str(item_dict.get('item_type', '')),

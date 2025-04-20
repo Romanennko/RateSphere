@@ -339,3 +339,18 @@ class DatabaseModel:
         except Exception as e:
             logger.exception(f"Unexpected error updating overall rating for item {item_id}: {e}")
             raise DatabaseError(f"Unexpected error updating overall rating: {e}") from e
+
+    def delete_rated_item(self, item_id):
+        """Deletes a rated item and its associated criteria ratings (due to CASCADE)."""
+        sql = "DELETE FROM rated_items WHERE item_id = %s;"
+        params = (item_id,)
+        try:
+            self.execute_query(sql, params, fetch=None)
+            logger.info(f"Successfully deleted rated item with id {item_id}.")
+            return True
+        except DatabaseError as e:
+            logger.error(f"Failed to delete rated item with id {item_id}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error deleting item {item_id}: {e}")
+            raise DatabaseError(f"Unexpected error deleting item: {e}") from e

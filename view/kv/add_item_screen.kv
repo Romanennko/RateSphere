@@ -15,6 +15,7 @@
                     on_release: app.open_app_bar_menu(self)
 
             MDTopAppBarTitle:
+                id: top_app_bar_title
                 text: "Add Item"
 
             MDTopAppBarTrailingButtonContainer:
@@ -136,10 +137,12 @@
                         text: "Cancel"
 
                 MDButton:
+                    id: save_button
                     style: "filled"
-                    on_release: app.add_item_controller.save_new_item(item_name.text, item_alt_name.text, type_button_text.text, status_button_text.text, item_review.text, root.rating_data)
+                    on_release: app.add_item_controller.save_item(item_name.text, item_alt_name.text, type_button_text.text, status_button_text.text, item_review.text, root.rating_data)
 
                     MDButtonText:
+                        id: save_button_text
                         text: "Save"
 
         Widget:

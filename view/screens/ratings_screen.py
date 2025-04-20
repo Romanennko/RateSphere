@@ -2,6 +2,7 @@ import logging
 
 from model.database_model import DatabaseError
 
+from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.dialog import (
@@ -9,6 +10,7 @@ from kivymd.uix.dialog import (
     MDDialogHeadlineText,
     MDDialogContentContainer,
     MDDialogButtonContainer,
+    MDDialogSupportingText,
 )
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.label import MDLabel
@@ -16,6 +18,8 @@ from kivymd.uix.divider import MDDivider
 
 from kivymd.app import MDApp
 
+from kivy.metrics import dp
+from kivy.core.window import Window
 from kivy.properties import StringProperty, DictProperty
 
 OVERALL_CRITERION_NAME = "Total score"
@@ -32,6 +36,7 @@ class RatingRowWidget(MDBoxLayout):
 
 class RatingsScreen(MDScreen):
     dialog = None
+    confirm_dialog = None
 
     def on_enter(self, *args):
         logger.debug(f"=====>> ENTERING screen: {self.name}")
@@ -77,23 +82,19 @@ class RatingsScreen(MDScreen):
         Creates and displays a dialog with complete information about the item,
         including criterion scores.
         """
+
+        self._dismiss_all_dialogs()
+
         if not item_data:
             logger.warning("Tried to show details for empty item_data.")
             return
 
-        if self.dialog:
-            self.dialog.dismiss()
-            self.dialog = None
-
         app = MDApp.get_running_app()
         db_model = app.models.get('database')
-        if not db_model:
-            logger.error("Database model not found!")
-            return
-
         item_id = item_data.get('item_id')
-        if not item_id:
-            logger.error("Item data is missing item_id.")
+
+        if not db_model or not item_id:
+            logger.error(f"Cannot show details: missing model or item_id. Item data: {item_data}")
             return
 
         dialog_content = MDBoxLayout(
@@ -194,18 +195,99 @@ class RatingsScreen(MDScreen):
                 )
             )
 
+        content_scroll_view = MDScrollView(
+            size_hint_y=None,
+            height=Window.height * 0.6
+        )
+        content_scroll_view.add_widget(dialog_content)
+
         self.dialog = MDDialog(
             MDDialogHeadlineText(text="Item Details"),
-            MDDialogContentContainer(dialog_content),
+            MDDialogContentContainer(content_scroll_view),
             MDDialogButtonContainer(
-                MDButton(MDButtonText(text="Close"), style="text", on_release=lambda *args: self.dialog.dismiss()),
+                MDButton(
+                    MDButtonText(text="DELETE", theme_text_color="Error"),
+                    style="text",
+                    on_release=lambda *args: self.confirm_delete_item(item_data)
+                ),
+                MDButton(
+                    MDButtonText(text="Close"),
+                    style="text",
+                    on_release=lambda *args: self.dialog.dismiss()
+                ),
                 spacing="8dp",
+                pos_hint={'center_x': 0.9}
             ),
-            size_hint=(0.8, None)
+            size_hint=(0.8, None),
+            on_dismiss=lambda *args: setattr(self, 'dialog', None)
         )
 
         logger.debug(f"Showing details for item: {item_data.get('name')}")
         self.dialog.open()
+
+    def confirm_delete_item(self, item_data):
+        """Shows a confirmation dialog before deleting an item."""
+
+        if not item_data or not item_data.get('item_id'):
+            logger.error("Cannot confirm deletion: Invalid item_data.")
+            self.show_error("Cannot delete item: Invalid data.")
+            return
+
+        item_id = item_data['item_id']
+        item_name = item_data.get('name', 'this item')
+
+        app = MDApp.get_running_app()
+
+        self.confirm_dialog = MDDialog(
+            MDDialogHeadlineText(text="Confirm Deletion"),
+            MDDialogSupportingText(
+                f"Are you sure you want to permanently delete '{item_name}'? This action cannot be undone."),
+            MDDialogButtonContainer(
+                MDButton(
+                    MDButtonText(text="Cancel"),
+                    style="text",
+                    on_release=lambda *args: self.confirm_dialog.dismiss()
+                ),
+                MDButton(
+                    MDButtonText(text="DELETE", theme_text_color="Error"),
+                    style="filled",
+                    theme_bg_color = "Custom",
+                    md_bg_color=app.theme_cls.errorColor,
+                    on_release=lambda *args: self._execute_delete(item_id)
+                ),
+                spacing="8dp",
+            ),
+            on_dismiss=lambda *args: setattr(self, 'confirm_dialog', None)
+        )
+        logger.debug(f"Showing delete confirmation for item: {item_name} (ID: {item_id})")
+        self.confirm_dialog.open()
+
+    def _execute_delete(self, item_id):
+        """Calls the controller to delete the item after confirmation."""
+        if self.confirm_dialog:
+            self.confirm_dialog.dismiss()
+
+        logger.info(f"Delete confirmed for item {item_id}. Calling controller...")
+        app = MDApp.get_running_app()
+        if hasattr(app, 'ratings_controller'):
+            app.ratings_controller.delete_item(item_id)
+        else:
+            logger.error("Cannot execute delete: ratings_controller not found in app.")
+            self.show_error("Error: Could not perform deletion.")
+
+        self._dismiss_all_dialogs()
+
+    def _dismiss_all_dialogs(self):
+        """Closes all active dialogs on this screen."""
+        for dialog_attr in ['dialog', 'confirm_dialog']:
+            dialog = getattr(self, dialog_attr, None)
+            if dialog:
+                try:
+                    dialog.dismiss()
+                except Exception as e:
+                    logger.warning(f"Error dismissing dialog '{dialog_attr}': {e}")
+                finally:
+                    setattr(self, dialog_attr, None)
 
     def show_error(self, message):
         """Displays an error message."""

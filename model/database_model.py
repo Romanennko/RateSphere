@@ -279,6 +279,29 @@ class DatabaseModel:
             logger.error(f"Failed to get criterion ratings for item {item_id}: {e}")
             raise
 
+    def update_rated_item(self, item_id, name, alt_name, item_type, status, review):
+        """Updates the basic fields of an existing rated item."""
+        sql = """
+            UPDATE rated_items
+            SET name = %s,
+                alt_name = %s,
+                item_type = %s,
+                status = %s,
+                review = %s
+            WHERE item_id = %s;
+        """
+        params = (name, alt_name, item_type, status, review, item_id)
+        try:
+            self.execute_query(sql, params, fetch=None)
+            logger.info(f"Successfully updated basic info for item {item_id}.")
+            return True
+        except DatabaseError as e:
+            logger.error(f"Failed to update basic info for item {item_id}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error updating item {item_id}: {e}")
+            raise DatabaseError(f"Unexpected error updating item: {e}") from e
+
     def update_overall_rating(self, item_id, direct_overall_rating=None):
         """
         Calculates and updates the overall rating in rated_items.
@@ -354,3 +377,34 @@ class DatabaseModel:
         except Exception as e:
             logger.exception(f"Unexpected error deleting item {item_id}: {e}")
             raise DatabaseError(f"Unexpected error deleting item: {e}") from e
+
+    def delete_criteria_ratings_except(self, item_id, criteria_ids_to_keep):
+        """Deletes criterion ratings for an item that are NOT in the provided list of IDs to keep."""
+        if not criteria_ids_to_keep:
+            logger.warning(
+                f"delete_criteria_ratings_except called with empty keep list for item {item_id}. No ratings deleted.")
+            return True
+
+        ids_tuple = tuple(criteria_ids_to_keep)
+
+        overall_criterion = self.get_overall_criterion()
+        overall_id = overall_criterion['criterion_id'] if overall_criterion else -1
+
+        sql = """
+            DELETE FROM item_criterion_ratings
+            WHERE item_id = %s
+              AND criterion_id != %s
+              AND criterion_id NOT IN %s;
+        """
+        params = (item_id, overall_id, ids_tuple)
+
+        try:
+            result = self.execute_query(sql, params, fetch=None)
+            logger.info(f"Executed deletion of criteria ratings for item {item_id} not in {criteria_ids_to_keep}.")
+            return True
+        except DatabaseError as e:
+            logger.error(f"Failed to delete criteria ratings for item {item_id}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error deleting criteria ratings for item {item_id}: {e}")
+            raise DatabaseError(f"Unexpected error deleting criteria ratings: {e}") from e

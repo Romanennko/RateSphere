@@ -79,3 +79,27 @@ class RatingsController:
             logger.debug(f"Set sort column to: {self.current_sort_column}, order: {self.current_sort_order}")
 
         self.load_items()
+
+    def delete_item(self, item_id):
+        """Handles the item deletion process."""
+        if not item_id:
+            logger.error("Delete item called with invalid item_id (None or 0).")
+            self.view.show_error("Cannot delete item: Invalid ID.")
+            return
+
+        logger.info(f"Attempting to delete item with id: {item_id}")
+        try:
+            success = self.data_model.delete_rated_item(item_id)
+
+            if success:
+                logger.info(f"Item {item_id} deleted successfully from database.")
+                self.load_items()
+            else:
+                logger.error(f"Failed to delete item {item_id} (model returned False).")
+
+        except DatabaseError as e:
+            logger.exception(f"Database error occurred while deleting item {item_id}: {e}")
+            self.view.show_error("Failed to delete item due to a database error.")
+        except Exception as e:
+            logger.exception(f"Unexpected error occurred while deleting item {item_id}: {e}")
+            self.view.show_error("An unexpected error occurred during deletion.")

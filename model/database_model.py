@@ -127,6 +127,50 @@ class DatabaseModel:
              logger.error(f"Failed to add user '{username}': {e}")
              raise
 
+    def add_rated_item(self, user_id, name, item_type, status, alt_name=None, review=None):
+        """
+        Adds a new item basics to the database (without overall rating).
+        Returns the new item_id or raises DatabaseError.
+        """
+        sql = """
+                INSERT INTO rated_items
+                    (user_id, name, alt_name, item_type, status, review, rating)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s, NULL)
+                RETURNING item_id;
+              """
+        params = (user_id, name, alt_name, item_type, status, review)
+        try:
+            result = self.execute_query(sql, params, fetch="one")
+            item_id = result[0] if result else None
+            if item_id:
+                logger.info(f"Successfully added basic item info '{name}' with id {item_id} for user {user_id}.")
+            else:
+                logger.error(
+                    f"Failed to add basic item info '{name}' for user {user_id} - INSERT query did not return ID.")
+                raise DatabaseError("Item creation failed unexpectedly (no ID returned).")
+            return item_id
+        except DatabaseError as e:
+            logger.error(f"Failed to add basic item info '{name}' for user_id {user_id}: {e}")
+            raise
+
+    def add_or_update_criterion_rating(self, item_id, criterion_id, rating):
+        """Adds a new criterion rating or updates the existing one for an item."""
+        sql = """
+            INSERT INTO item_criterion_ratings (item_id, criterion_id, rating)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (item_id, criterion_id)
+            DO UPDATE SET rating = EXCLUDED.rating;
+        """
+        params = (item_id, criterion_id, rating)
+        try:
+            self.execute_query(sql, params, fetch=None)
+            logger.debug(f"Successfully added/updated criterion rating for item {item_id}, criterion {criterion_id}.")
+            return True
+        except DatabaseError as e:
+            logger.error(f"Failed to add/update criterion rating for item {item_id}, criterion {criterion_id}: {e}")
+            raise
+
     def get_user_by_username(self, username, use_dict_cursor=False):
         sql = "SELECT user_id, username, email, password_hash FROM users WHERE username = %s;"
         try:
@@ -144,7 +188,7 @@ class DatabaseModel:
              raise
 
     def get_user_items(self, user_id, sort_by='created_at', sort_order='DESC', use_dict_cursor=False):
-        """Retrieves all rated items for the user with sorting."""
+        """Retrieves all rated items for the user with sorting. Rating is the calculated overall rating."""
         allowed_sort_columns = ['name', 'item_type', 'status', 'rating', 'created_at', 'updated_at']
         if sort_by not in allowed_sort_columns:
             logger.warning(f"Invalid sort column requested: '{sort_by}'. Defaulting to 'created_at'.")
@@ -157,36 +201,141 @@ class DatabaseModel:
         order_by_clause = f"ORDER BY {sort_by} {sort_order.upper()}"
 
         sql = f"""
-            SELECT item_id, name, alt_name, item_type, status, rating, review, created_at, updated_at
-            FROM rated_items
-            WHERE user_id = %s
-            {order_by_clause};
-        """
+                SELECT item_id, name, alt_name, item_type, status, rating, review, created_at, updated_at
+                FROM rated_items
+                WHERE user_id = %s
+                {order_by_clause};
+               """
         try:
             return self.execute_query(sql, (user_id,), fetch="all", use_dict_cursor=use_dict_cursor)
         except DatabaseError as e:
             logger.error(f"Failed to get items for user_id {user_id}: {e}")
             raise
 
-    def add_rated_item(self, user_id, name, item_type, status, rating, alt_name=None, review=None):
-        """Adds a new rated item. Raises DatabaseError on failure."""
-        sql = """
-            INSERT INTO rated_items
-                (user_id, name, alt_name, item_type, status, rating, review)
-            VALUES
-                (%s, %s, %s, %s, %s, %s, %s)
-            RETURNING item_id;
-        """
-        params = (user_id, name, alt_name, item_type, status, rating, review)
+    def get_criterion_by_id(self, criterion_id, use_dict_cursor=True):
+        """Gets criterion details by its ID."""
+        sql = "SELECT criterion_id, name, description, default_for_types, is_overall FROM criteria WHERE criterion_id = %s;"
         try:
-            result = self.execute_query(sql, params, fetch="one")
-            item_id = result[0] if result else None
-            if item_id:
-                 logger.info(f"Successfully added item '{name}' with id {item_id} for user {user_id}.")
-            else:
-                 logger.error(f"Failed to add item '{name}' for user {user_id} - INSERT query did not return ID.")
-                 raise DatabaseError("Item creation failed unexpectedly (no ID returned).")
-            return item_id
+            return self.execute_query(sql, (criterion_id,), fetch="one", use_dict_cursor=use_dict_cursor)
         except DatabaseError as e:
-            logger.error(f"Failed to add item '{name}' for user_id {user_id}: {e}")
+            logger.error(f"Failed to get criterion by id {criterion_id}: {e}")
             raise
+
+    def get_criterion_by_name(self, name, use_dict_cursor=True):
+        """Gets criterion details by its name."""
+        sql = "SELECT criterion_id, name, description, default_for_types, is_overall FROM criteria WHERE name = %s;"
+        try:
+            return self.execute_query(sql, (name,), fetch="one", use_dict_cursor=use_dict_cursor)
+        except DatabaseError as e:
+            logger.error(f"Failed to get criterion by name '{name}': {e}")
+            raise
+
+    def get_overall_criterion(self, use_dict_cursor=True):
+        """Gets the special 'overall' criterion details."""
+        sql = "SELECT criterion_id, name, description, default_for_types, is_overall FROM criteria WHERE is_overall = TRUE LIMIT 1;"
+        try:
+            return self.execute_query(sql, fetch="one", use_dict_cursor=use_dict_cursor)
+        except DatabaseError as e:
+            logger.error(f"Failed to get the overall criterion: {e}")
+            raise
+
+    def get_all_criteria(self, use_dict_cursor=True):
+        """Gets all defined criteria, ordered by name."""
+        sql = "SELECT criterion_id, name, description, default_for_types, is_overall FROM criteria ORDER BY name;"
+        try:
+            return self.execute_query(sql, fetch="all", use_dict_cursor=use_dict_cursor)
+        except DatabaseError as e:
+            logger.error(f"Failed to get all criteria: {e}")
+            raise
+
+    def get_suggested_criteria(self, item_type, use_dict_cursor=True):
+        """Gets criteria suggested for a specific item type."""
+        sql = """
+            SELECT criterion_id, name, description, default_for_types, is_overall
+            FROM criteria
+            WHERE %s = ANY(default_for_types)
+            ORDER BY name;
+        """
+        try:
+            return self.execute_query(sql, (item_type,), fetch="all", use_dict_cursor=use_dict_cursor)
+        except DatabaseError as e:
+            logger.error(f"Failed to get suggested criteria for type '{item_type}': {e}")
+            raise
+
+    def get_criterion_ratings_for_item(self, item_id, use_dict_cursor=True):
+        """Gets all criterion ratings for a specific item, joining with criteria names."""
+        sql = """
+            SELECT
+                icr.rating_id, icr.item_id, icr.criterion_id, icr.rating,
+                c.name as criterion_name, c.is_overall
+            FROM item_criterion_ratings icr
+            JOIN criteria c ON icr.criterion_id = c.criterion_id
+            WHERE icr.item_id = %s
+            ORDER BY c.name;
+        """
+        try:
+            return self.execute_query(sql, (item_id,), fetch="all", use_dict_cursor=use_dict_cursor)
+        except DatabaseError as e:
+            logger.error(f"Failed to get criterion ratings for item {item_id}: {e}")
+            raise
+
+    def update_overall_rating(self, item_id, direct_overall_rating=None):
+        """
+        Calculates and updates the overall rating in rated_items.
+        If direct_overall_rating is provided, uses it directly.
+        Otherwise, calculates the average from item_criterion_ratings (excluding the 'overall' criterion).
+        """
+        final_rating = None
+
+        try:
+            if direct_overall_rating is not None:
+                try:
+                    final_rating = float(direct_overall_rating)
+                    if not (1.0 <= final_rating <= 10.0):
+                        logger.warning(
+                            f"Direct overall rating {final_rating} for item {item_id} is out of range 1-10. Setting to NULL.")
+                        final_rating = None
+                except (ValueError, TypeError):
+                    logger.error(
+                        f"Invalid direct overall rating value '{direct_overall_rating}' for item {item_id}. Setting to NULL.")
+                    final_rating = None
+                logger.info(f"Using direct overall rating {final_rating} for item {item_id}.")
+
+            else:
+                logger.debug(f"Calculating average rating for item {item_id} from criteria...")
+                overall_criterion = self.get_overall_criterion(use_dict_cursor=True)
+                overall_criterion_id = overall_criterion['criterion_id'] if overall_criterion else None
+
+                if overall_criterion_id is None:
+                    logger.error("Cannot calculate average rating: 'Overall' criterion not found in DB.")
+                    return False
+
+                sql_avg = """
+                    SELECT rating FROM item_criterion_ratings
+                    WHERE item_id = %s AND criterion_id != %s;
+                """
+                params_avg = (item_id, overall_criterion_id)
+                ratings_list = self.execute_query(sql_avg, params_avg, fetch="all", use_dict_cursor=False)
+
+                if ratings_list:
+                    total = sum(r[0] for r in ratings_list)
+                    count = len(ratings_list)
+                    average = round(total / count, 2)
+                    final_rating = average
+                    logger.info(f"Calculated average rating {final_rating} from {count} criteria for item {item_id}.")
+                else:
+                    logger.info(f"No specific criteria rated for item {item_id}. Overall rating will be NULL.")
+                    final_rating = None
+
+            sql_update = "UPDATE rated_items SET rating = %s WHERE item_id = %s;"
+            params_update = (final_rating, item_id)
+            self.execute_query(sql_update, params_update, fetch=None)
+            logger.info(f"Updated overall rating for item {item_id} to {final_rating}.")
+            return True
+
+        except DatabaseError as e:
+            logger.error(f"Failed to update overall rating for item {item_id}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error updating overall rating for item {item_id}: {e}")
+            raise DatabaseError(f"Unexpected error updating overall rating: {e}") from e

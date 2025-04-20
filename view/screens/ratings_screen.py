@@ -1,3 +1,7 @@
+import logging
+
+from model.database_model import DatabaseError
+
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.dialog import (
@@ -12,9 +16,9 @@ from kivymd.uix.divider import MDDivider
 
 from kivymd.app import MDApp
 
-import logging
-
 from kivy.properties import StringProperty, DictProperty
+
+OVERALL_CRITERION_NAME = "Total score"
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +73,10 @@ class RatingsScreen(MDScreen):
              logger.error("RatingsScreen Error: ratings_rv ID not found.")
 
     def show_item_details_dialog(self, item_data):
-        """Creates and shows a dialog with full item details."""
+        """
+        Creates and displays a dialog with complete information about the item,
+        including criterion scores.
+        """
         if not item_data:
             logger.warning("Tried to show details for empty item_data.")
             return
@@ -78,6 +85,17 @@ class RatingsScreen(MDScreen):
             self.dialog.dismiss()
             self.dialog = None
 
+        app = MDApp.get_running_app()
+        db_model = app.models.get('database')
+        if not db_model:
+            logger.error("Database model not found!")
+            return
+
+        item_id = item_data.get('item_id')
+        if not item_id:
+            logger.error("Item data is missing item_id.")
+            return
+
         dialog_content = MDBoxLayout(
             orientation="vertical",
             padding="10dp",
@@ -85,13 +103,14 @@ class RatingsScreen(MDScreen):
             adaptive_height=True,
         )
 
+        overall_rating_display = f"{item_data.get('rating'):.1f}/10" if item_data.get('rating') is not None else "N/A"
         details_text = f"""
             [b]Name:[/b] {item_data.get('name', 'N/A')}
             [b]Alternative Name:[/b] {item_data.get('alt_name', '-')}
             [b]Type:[/b] {item_data.get('item_type', 'N/A')}
             [b]Status:[/b] {item_data.get('status', 'N/A')}
-            [b]Rating:[/b] {item_data.get('rating', 'N/A')} / 10
-            """
+            [b]Overall Rating:[/b] {overall_rating_display}
+        """
         dialog_content.add_widget(
             MDLabel(
                 text=details_text,
@@ -99,6 +118,64 @@ class RatingsScreen(MDScreen):
                 adaptive_height=True,
             )
         )
+
+        try:
+            criteria_ratings = db_model.get_criterion_ratings_for_item(item_id)
+
+            if criteria_ratings:
+                dialog_content.add_widget(MDDivider())
+                dialog_content.add_widget(
+                    MDLabel(
+                        text="[b]Criteria Ratings:[/b]",
+                        markup=True,
+                        adaptive_height=True,
+                    )
+                )
+
+                is_only_total_score = len(criteria_ratings) == 1 and criteria_ratings[0].get('is_overall')
+
+                if is_only_total_score:
+                    total_score_value = criteria_ratings[0].get('rating')
+                    dialog_content.add_widget(
+                        MDLabel(
+                            text=f"- {OVERALL_CRITERION_NAME}: {total_score_value:.1f}/10",
+                            adaptive_height=True,
+                            italic=True
+                        )
+                    )
+                else:
+                    criteria_box = MDBoxLayout(orientation='vertical', adaptive_height=True, spacing='2dp',
+                                               padding=['10dp', 0, 0, 0])
+                    count = 0
+                    for rating_info in criteria_ratings:
+                        if rating_info.get('is_overall'):
+                            continue
+                        criterion_name = rating_info.get('criterion_name', 'Unknown')
+                        criterion_score = rating_info.get('rating')
+                        criteria_box.add_widget(
+                            MDLabel(
+                                text=f"- {criterion_name}: {criterion_score:.1f}/10",
+                                adaptive_height=True
+                            )
+                        )
+                        count += 1
+                    if count > 0:
+                        dialog_content.add_widget(criteria_box)
+                    elif not criteria_ratings[0].get(
+                            'is_overall'):
+                        dialog_content.add_widget(
+                            MDLabel(text="- No specific criteria rated.", adaptive_height=True, italic=True))
+
+        except DatabaseError as e:
+            logger.exception(f"Failed to load criteria ratings for item {item_id}")
+            dialog_content.add_widget(MDDivider())
+            dialog_content.add_widget(
+                MDLabel(
+                    text="[color=ff0000]Error loading criteria ratings.[/color]",
+                    markup=True,
+                    adaptive_height=True
+                )
+            )
 
         review = item_data.get('review')
         if review:
@@ -118,19 +195,10 @@ class RatingsScreen(MDScreen):
             )
 
         self.dialog = MDDialog(
-            MDDialogHeadlineText(
-                text="Item Details",
-            ),
-            MDDialogContentContainer(
-                dialog_content
-            ),
+            MDDialogHeadlineText(text="Item Details"),
+            MDDialogContentContainer(dialog_content),
             MDDialogButtonContainer(
-                MDButton(
-                    MDButtonText(text="Close"),
-                    style="text",
-                    on_release=lambda *args: self.dialog.dismiss(),
-                ),
-                # TODO Add “Edit”, “Delete” buttons here in the future
+                MDButton(MDButtonText(text="Close"), style="text", on_release=lambda *args: self.dialog.dismiss()),
                 spacing="8dp",
             ),
             size_hint=(0.8, None)

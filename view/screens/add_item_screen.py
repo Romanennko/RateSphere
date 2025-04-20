@@ -36,6 +36,9 @@ class AddItemScreen(MDScreen):
     displayed_criterion_ids = set()
     criteria_content_box = None
 
+    edit_mode = False
+    item_to_edit_id = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -44,8 +47,17 @@ class AddItemScreen(MDScreen):
         self.type_menu = None
         self.type_menu_items = self._create_menu_items(ITEM_TYPES, self._set_type)
 
+    def on_pre_enter(self, *args):
+        """Called before the screen becomes active."""
+        if not self.edit_mode:
+            self.clear_fields()
+
     def on_leave(self, *args):
+        """Called when you leave the screen."""
         self._dismiss_all_dialogs()
+        self.edit_mode = False
+        self.item_to_edit_id = None
+        logger.debug("Leaving AddItemScreen, edit mode reset.")
         return super().on_leave(*args)
 
     def _dismiss_all_dialogs(self):
@@ -58,17 +70,15 @@ class AddItemScreen(MDScreen):
                 setattr(self, dialog_attr, None)
 
     def clear_fields(self):
-        """Clears all input fields and resets states."""
+        """Clears all fields and resets the state (including edit mode)."""
         self.ids.item_name.text = ''
         self.ids.item_alt_name.text = ''
+        self.ids.item_review.text = ''
+
         if hasattr(self.ids, 'type_button_text'):
             self.ids.type_button_text.text = "Select type"
         if hasattr(self.ids, 'status_button_text'):
             self.ids.status_button_text.text = "Select status"
-
-        self.ids.item_review.text = ''
-        if hasattr(self.ids, 'error_label'):
-            self.ids.error_label.text = ''
 
         self.rating_data = {}
         if hasattr(self.ids, 'rating_button_text'):
@@ -77,7 +87,17 @@ class AddItemScreen(MDScreen):
         self.criteria_rows = {}
         self.displayed_criterion_ids = set()
         self.criteria_content_box = None
-        logger.debug("AddItemScreen fields cleared.")
+
+        self.edit_mode = False
+        self.item_to_edit_id = None
+
+        self.ids.top_app_bar_title.text = "Add Item"
+        if hasattr(self.ids, 'save_button_text'):
+            self.ids.save_button_text.text = "Save"
+
+        if hasattr(self.ids, 'error_label'):
+            self.ids.error_label.text = ''
+        logger.debug("AddItemScreen fields cleared and edit mode reset.")
 
     def _create_criterion_row_widget(self, criterion_data, current_rating):
         """Creates a row widget (BoxLayout) for a single criteria with a slider."""
@@ -118,6 +138,86 @@ class AddItemScreen(MDScreen):
         row.slider_widget = slider
 
         return row
+
+    def load_item_for_edit(self, item_data):
+        """Prepares the screen for editing an existing item."""
+        logger.info(f"Loading item data for editing: ID {item_data.get('item_id')}")
+        self.clear_fields()
+        self._dismiss_all_dialogs()
+
+        self.edit_mode = True
+        self.item_to_edit_id = item_data.get('item_id')
+
+        if not self.item_to_edit_id:
+            logger.error("Cannot load item for edit: item_id is missing.")
+            self.show_error("Error: Invalid item data for editing.")
+            self.edit_mode = False
+            return
+
+        self.ids.item_name.text = item_data.get('name', '') or ''
+        self.ids.item_alt_name.text = item_data.get('alt_name') or ''
+        self.ids.item_review.text = item_data.get('review') or ''
+        item_type = item_data.get('item_type')
+        if item_type and hasattr(self.ids, 'type_button_text'):
+            self.ids.type_button_text.text = item_type
+        item_status = item_data.get('status')
+        if item_status and hasattr(self.ids, 'status_button_text'):
+            self.ids.status_button_text.text = item_status
+
+        app = MDApp.get_running_app()
+        db_model = app.models.get('database')
+        if not db_model:
+            logger.error("Cannot load criteria ratings: DB model not found.")
+            self.show_error("Error loading rating details.")
+            return
+
+        try:
+            criteria_ratings_list = db_model.get_criterion_ratings_for_item(self.item_to_edit_id)
+            loaded_rating_data = {}
+            calculated_average = 0
+            rated_count = 0
+            has_only_total = False
+
+            if criteria_ratings_list:
+                if len(criteria_ratings_list) == 1 and criteria_ratings_list[0].get('is_overall'):
+                    total_score_rating = criteria_ratings_list[0].get('rating')
+                    loaded_rating_data[OVERALL_CRITERION_NAME] = float(total_score_rating)
+                    has_only_total = True
+                else:
+                    sum_ratings = 0
+                    for rating_info in criteria_ratings_list:
+                        name = rating_info.get('criterion_name')
+                        rating_val = rating_info.get('rating')
+                        if name and rating_val is not None:
+                            loaded_rating_data[name] = float(rating_val)
+                            if not rating_info.get('is_overall'):
+                                sum_ratings += float(rating_val)
+                                rated_count += 1
+                    if rated_count > 0:
+                        calculated_average = round(sum_ratings / rated_count, 1)
+
+            self.rating_data = loaded_rating_data
+            logger.debug(f"Loaded rating data for edit: {self.rating_data}")
+
+            if hasattr(self.ids, 'rating_button_text'):
+                if has_only_total:
+                    self.ids.rating_button_text.text = f"Rating: {loaded_rating_data[OVERALL_CRITERION_NAME]:.1f}/10"
+                elif rated_count > 0:
+                    self.ids.rating_button_text.text = f"Rating: {calculated_average:.1f}/10 ({rated_count} criteria)"
+                else:
+                    self.ids.rating_button_text.text = "Set Rating"
+
+        except DatabaseError as e:
+            logger.exception(f"Failed to load criteria ratings for item {self.item_to_edit_id} during edit load.")
+            self.show_error("Error loading rating details.")
+            self.rating_data = {}
+            if hasattr(self.ids, 'rating_button_text'):
+                self.ids.rating_button_text.text = "Set Rating (Error)"
+
+        if hasattr(self.ids, 'top_app_bar_title'):
+            self.ids.top_app_bar_title.text = f"Edit: {item_data.get('name', '')}"
+        if hasattr(self.ids, 'save_button_text'):
+            self.ids.save_button_text.text = "Update"
 
     def _create_menu_items(self, items_list, callback):
         return [

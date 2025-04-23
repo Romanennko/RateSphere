@@ -36,8 +36,6 @@ class RateSphere(MDApp):
         Window.fullscreen = "auto"
         self.icon = "assets/icons/icon.png"
 
-        self.theme_cls.theme_style_switch_animation = True
-        self.theme_cls.theme_style_switch_animation_duration = 0.8
         logger.info("-----------------------------------")
 
     def build(self):

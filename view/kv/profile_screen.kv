@@ -123,7 +123,7 @@
                 MDCard:
                     style: "elevated"
                     padding: "10dp"
-                    spacing: "5dp"
+                    spacing: "15dp"
                     size_hint_y: None
                     height: self.minimum_height
 
@@ -134,13 +134,55 @@
                         adaptive_height: True
                         padding: ["5dp", "10dp"]
 
-                    # TODO: Add fields and a button to change the password
-                    MDListItem:
-                        MDListItemHeadlineText:
-                            text: "Change Password"
+                    MDTextField:
+                        id: current_password
+                        mode: "outlined"
+                        password: True
+                        size_hint_x: 0.8
+                        pos_hint: {"center_x": 0.5}
 
-                        MDListItemTertiaryText:
-                            text: "(Coming soon)"
+                        MDTextFieldHintText:
+                            text: "Current Password"
+
+                    MDTextField:
+                        id: new_password
+                        mode: "outlined"
+                        password: True
+                        size_hint_x: 0.8
+                        pos_hint: {"center_x": 0.5}
+
+                        MDTextFieldHintText:
+                            text: "New Password (min 6 chars)"
+
+                    MDTextField:
+                        id: confirm_password
+                        mode: "outlined"
+                        password: True
+                        size_hint_x: 0.8
+                        pos_hint: {"center_x": 0.5}
+
+                        MDTextFieldHintText:
+                            text: "Confirm New Password"
+
+                    MDLabel:
+                        id: password_feedback_label
+                        text: ""
+                        halign: "center"
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primaryColor
+                        adaptive_height: True
+                        size_hint_y: None
+                        height: self.texture_size[1] if self.text else 0
+                        padding: dp(5)
+
+                    MDButton:
+                        id: change_password_button
+                        style: "filled"
+                        pos_hint: {"center_x": 0.5}
+                        on_release: app.profile_controller.change_password(current_password.text, new_password.text, confirm_password.text)
+
+                        MDButtonText:
+                            text: "Change Password"
 
                 MDCard:
                     style: "elevated"
@@ -155,8 +197,6 @@
                         role: "small"
                         adaptive_height: True
                         padding: ["5dp", "10dp"]
-
-
 
                     # TODO: Add items to customize sorting
                     MDListItem:

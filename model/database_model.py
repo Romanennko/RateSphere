@@ -279,6 +279,92 @@ class DatabaseModel:
             logger.error(f"Failed to get criterion ratings for item {item_id}: {e}")
             raise
 
+    def get_user_details(self, user_id):
+        """Fetches user details (email, created_at) by user_id."""
+        sql = "SELECT email, created_at FROM users WHERE user_id = %s;"
+        try:
+            return self.execute_query(sql, (user_id,), fetch="one")
+        except DatabaseError as e:
+            logger.error(f"Failed to get user details for user_id {user_id}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error getting user details for {user_id}: {e}")
+            raise DatabaseError(f"Unexpected error getting user details: {e}") from e
+
+    def get_user_statistics(self, user_id):
+        """Calculates and returns various statistics for a user."""
+        stats = {
+            'total_items': 0,
+            'count_by_type': {},  # {'Movie': 10, 'Game': 5, ...}
+            'count_by_status': {},  # {'Completed': 15, ...}
+            'average_rating': None
+        }
+        try:
+            sql_total_avg = """
+                            SELECT COUNT(*), AVG(rating)
+                            FROM rated_items
+                            WHERE user_id = %s; \
+                            """
+            result_total_avg = self.execute_query(sql_total_avg, (user_id,), fetch="one")
+            if result_total_avg:
+                stats['total_items'] = result_total_avg['count']
+                if result_total_avg['avg'] is not None:
+                    stats['average_rating'] = round(float(result_total_avg['avg']), 2)
+
+            sql_by_type = """
+                          SELECT item_type, COUNT(*) as count
+                          FROM rated_items
+                          WHERE user_id = %s
+                          GROUP BY item_type
+                          ORDER BY count DESC; \
+                          """
+            result_by_type = self.execute_query(sql_by_type, (user_id,), fetch="all")
+            if result_by_type:
+                stats['count_by_type'] = {row['item_type']: row['count'] for row in result_by_type}
+
+            sql_by_status = """
+                            SELECT status, COUNT(*) as count
+                            FROM rated_items
+                            WHERE user_id = %s
+                            GROUP BY status
+                            ORDER BY count DESC; \
+                            """
+            result_by_status = self.execute_query(sql_by_status, (user_id,), fetch="all")
+            if result_by_status:
+                stats['count_by_status'] = {row['status']: row['count'] for row in result_by_status}
+
+            logger.info(f"Statistics calculated successfully for user_id {user_id}")
+            return stats
+
+        except DatabaseError as e:
+            logger.error(f"Failed to get statistics for user_id {user_id}: {e}")
+            return stats
+        except Exception as e:
+            logger.exception(f"Unexpected error calculating statistics for {user_id}: {e}")
+            return stats
+
+    def get_user_password_hash(self, user_id):
+        """Fetches only the password hash for a user."""
+        sql = "SELECT password_hash FROM users WHERE user_id = %s;"
+        try:
+            result = self.execute_query(sql, (user_id,), fetch="one")
+            return result['password_hash'] if result else None
+        except DatabaseError as e:
+            logger.error(f"Failed to get password hash for user_id {user_id}: {e}")
+            raise
+
+    def update_user_password(self, user_id, new_password_hash):
+        """Updates the user's password hash."""
+        sql = "UPDATE users SET password_hash = %s WHERE user_id = %s;"
+        params = (new_password_hash, user_id)
+        try:
+            self.execute_query(sql, params, fetch=None)
+            logger.info(f"Password updated successfully for user_id {user_id}.")
+            return True
+        except DatabaseError as e:
+            logger.error(f"Failed to update password for user_id {user_id}: {e}")
+            raise
+
     def update_rated_item(self, item_id, name, alt_name, item_type, status, review):
         """Updates the basic fields of an existing rated item."""
         sql = """

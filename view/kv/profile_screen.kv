@@ -1,4 +1,8 @@
+#:import ProfileScreen view.screens.profile_screen.ProfileScreen
+#:import MDList kivymd.uix.list.MDList
+
 <ProfileScreen>:
+    name: "profile"
     md_bg_color: app.theme_cls.backgroundColor
 
     MDBoxLayout:
@@ -14,9 +18,150 @@
                     on_release: app.open_app_bar_menu(self)
 
             MDTopAppBarTitle:
-                text: "My Ratings"
+                text: "My Profile"
 
             MDTopAppBarTrailingButtonContainer:
                 MDActionTopAppBarButton:
                     icon: "account-circle-outline"
                     on_release: app.open_profile_menu(self)
+
+        MDScrollView:
+            MDBoxLayout:
+                id: content_box
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_y: None
+                padding: "10dp"
+                spacing: "15dp"
+
+                MDCard:
+                    style: "elevated"
+                    padding: "10dp"
+                    spacing: "5dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDListItem:
+                        MDListItemHeadlineText:
+                            id: username_label
+                            text: "Username loading..."
+
+                    MDListItem:
+                        MDListItemLeadingIcon:
+                            icon: "email-outline"
+
+                        MDListItemHeadlineText:
+                            id: email_label
+                            text: "Email loading..."
+
+                    MDListItem:
+                        MDListItemLeadingIcon:
+                            icon: "calendar-clock"
+
+                        MDListItemHeadlineText:
+                            id: joined_label
+                            text: "Joined: loading..."
+                            font_style: "Headline"
+                            role: "small"
+
+
+                MDCard:
+                    style: "elevated"
+                    padding: "10dp"
+                    spacing: "5dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDLabel:
+                        text: "Statistics"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "10dp"]
+
+
+                    MDListItem:
+                        MDListItemHeadlineText:
+                            text: "Total Items Rated:"
+
+                        MDListItemTertiaryText:
+                            id: total_items_label
+                            text: "-"
+
+                    MDListItem:
+                        MDListItemHeadlineText:
+                            text: "Average Rating:"
+
+                        MDListItemTertiaryText:
+                            id: avg_rating_label
+                            text: "N/A"
+
+                    MDLabel:
+                        text: "Counts by Type:"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "15dp", "5dp", "5dp"] # Отступы
+
+                    MDList:
+                        id: type_stats_list
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                    MDLabel:
+                        text: "Counts by Status:"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "15dp", "5dp", "5dp"]
+
+                    MDList:
+                        id: status_stats_list
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                MDCard:
+                    style: "elevated"
+                    padding: "10dp"
+                    spacing: "5dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDLabel:
+                        text: "Account Management"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "10dp"]
+
+                    # TODO: Add fields and a button to change the password
+                    MDListItem:
+                        MDListItemHeadlineText:
+                            text: "Change Password"
+
+                        MDListItemTertiaryText:
+                            text: "(Coming soon)"
+
+                MDCard:
+                    style: "elevated"
+                    padding: "10dp"
+                    spacing: "5dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    MDLabel:
+                        text: "Settings"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "10dp"]
+
+
+
+                    # TODO: Add items to customize sorting
+                    MDListItem:
+                        MDListItemHeadlineText:
+                            text: "Default Sort Order"
+
+                        MDListItemTertiaryText:
+                            text: "(Coming soon)"

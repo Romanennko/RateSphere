@@ -297,7 +297,9 @@ class DatabaseModel:
             'total_items': 0,
             'count_by_type': {},  # {'Movie': 10, 'Game': 5, ...}
             'count_by_status': {},  # {'Completed': 15, ...}
-            'average_rating': None
+            'average_rating': None,
+            'avg_rating_by_type': {},
+            'rating_distribution': {}
         }
         try:
             sql_total_avg = """
@@ -346,6 +348,20 @@ class DatabaseModel:
                 stats['avg_rating_by_type'] = {
                     row['item_type']: round(float(row['avg_rating']), 1)
                     for row in result_avg_by_type
+                }
+
+            sql_dist = """
+                       SELECT ROUND(rating) as rating_group, COUNT(*) as count
+                       FROM rated_items
+                       WHERE user_id = %s AND rating IS NOT NULL
+                       GROUP BY rating_group
+                       ORDER BY rating_group DESC;
+                       """
+            result_dist = self.execute_query(sql_dist, (user_id,), fetch="all")
+            if result_dist:
+                stats['rating_distribution'] = {
+                    int(row['rating_group']): row['count']
+                    for row in result_dist if row['rating_group'] is not None
                 }
 
             logger.info(f"Statistics calculated successfully for user_id {user_id}")

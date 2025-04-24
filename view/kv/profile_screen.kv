@@ -132,6 +132,18 @@
                         size_hint_y: None
                         height: self.minimum_height
 
+                    MDLabel:
+                        text: "Rating Distribution:"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "15dp", "5dp", "5dp"]
+
+                    MDList:
+                        id: rating_dist_list
+                        size_hint_y: None
+                        height: self.minimum_height
+
                 MDCard:
                     style: "elevated"
                     padding: "10dp"

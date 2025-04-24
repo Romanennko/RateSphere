@@ -95,6 +95,29 @@ class ProfileScreen(MDScreen):
                         MDListItemHeadlineText(text="No ratings available for average calculation.", italic=True))
                 )
 
+        if hasattr(self.ids, 'rating_dist_list'):
+            dist_list_widget = self.ids.rating_dist_list
+            dist_list_widget.clear_widgets()
+            rating_distribution = stats.get('rating_distribution', {})
+
+            if rating_distribution:
+                sorted_ratings = sorted(rating_distribution.keys(), reverse=True)
+
+                for rating_group in sorted_ratings:
+                    count = rating_distribution[rating_group]
+                    text_headline = f"Rating {rating_group}:"
+                    text_tertiary = f"{count} item{'s' if count != 1 else ''}"
+
+                    list_item = MDListItem(
+                        MDListItemHeadlineText(text=text_headline),
+                        MDListItemTertiaryText(text=text_tertiary)
+                    )
+                    dist_list_widget.add_widget(list_item)
+            else:
+                dist_list_widget.add_widget(
+                    MDListItem(MDListItemHeadlineText(text="No ratings available.", italic=True))
+                )
+
     def show_password_feedback(self, message, is_error=False):
         """Displays a feedback message below the password fields."""
         if hasattr(self.ids, 'password_feedback_label'):

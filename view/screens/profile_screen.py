@@ -76,6 +76,25 @@ class ProfileScreen(MDScreen):
                      MDListItem(MDListItemHeadlineText(text="No items rated yet.", italic=True))
                  )
 
+        if hasattr(self.ids, 'type_avg_rating_list'):
+            avg_list_widget = self.ids.type_avg_rating_list
+            avg_list_widget.clear_widgets()
+            avg_rating_by_type = stats.get('avg_rating_by_type', {})
+            if avg_rating_by_type:
+                sorted_avg_types = sorted(avg_rating_by_type.items(), key=lambda item: item[0])
+                for item_type, avg_rating in sorted_avg_types:
+                    rating_text = f"{avg_rating:.1f}/10"
+                    list_item = MDListItem(
+                        MDListItemHeadlineText(text=str(item_type)),
+                        MDListItemTertiaryText(text=rating_text)
+                    )
+                    avg_list_widget.add_widget(list_item)
+            else:
+                avg_list_widget.add_widget(
+                    MDListItem(
+                        MDListItemHeadlineText(text="No ratings available for average calculation.", italic=True))
+                )
+
     def show_password_feedback(self, message, is_error=False):
         """Displays a feedback message below the password fields."""
         if hasattr(self.ids, 'password_feedback_label'):

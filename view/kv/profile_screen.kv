@@ -120,6 +120,18 @@
                         size_hint_y: None
                         height: self.minimum_height
 
+                    MDLabel:
+                        text: "Average Rating by Type:"
+                        font_style: "Headline"
+                        role: "small"
+                        adaptive_height: True
+                        padding: ["5dp", "15dp", "5dp", "5dp"]
+
+                    MDList:
+                        id: type_avg_rating_list
+                        size_hint_y: None
+                        height: self.minimum_height
+
                 MDCard:
                     style: "elevated"
                     padding: "10dp"

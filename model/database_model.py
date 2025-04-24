@@ -333,6 +333,21 @@ class DatabaseModel:
             if result_by_status:
                 stats['count_by_status'] = {row['status']: row['count'] for row in result_by_status}
 
+            sql_avg_by_type = """
+                              SELECT item_type, AVG(rating) as avg_rating
+                              FROM rated_items
+                              WHERE user_id = %s \
+                                AND rating IS NOT NULL
+                              GROUP BY item_type
+                              ORDER BY item_type; \
+                              """
+            result_avg_by_type = self.execute_query(sql_avg_by_type, (user_id,), fetch="all")
+            if result_avg_by_type:
+                stats['avg_rating_by_type'] = {
+                    row['item_type']: round(float(row['avg_rating']), 1)
+                    for row in result_avg_by_type
+                }
+
             logger.info(f"Statistics calculated successfully for user_id {user_id}")
             return stats
 

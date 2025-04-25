@@ -3,6 +3,9 @@ from model.database_model import DatabaseError
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_SORT_COLUMNS = ['name', 'item_type', 'status', 'rating', 'created_at', 'updated_at']
+ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
+
 class RatingsController:
     def __init__(self, models, view, app):
         self.data_model = models['database']    # Link to DatabaseModel
@@ -10,10 +13,21 @@ class RatingsController:
         self.view = view                        # Link to RatingsScreen
         self.app = app                          # Link to the main application class (for navigation)
 
-        self.current_sort_column = 'created_at'
-        self.current_sort_order = 'DESC'
+        try:
+            default_sort = self.session_model.get_default_sort()
+            loaded_column = default_sort.get('column', 'created_at')
+            loaded_order = default_sort.get('order', 'DESC').upper()
 
-        logger.debug('RatingsController initialized.')
+            self.current_sort_column = loaded_column if loaded_column in ALLOWED_SORT_COLUMNS else 'created_at'
+            self.current_sort_order = loaded_order if loaded_order in ALLOWED_SORT_ORDERS else 'DESC'
+
+            logger.info(
+                f"RatingsController initialized with default sort: {self.current_sort_column} {self.current_sort_order}")
+
+        except Exception as e:
+            logger.exception("Error loading default sort settings, using hardcoded defaults.", exc_info=True)
+            self.current_sort_column = 'created_at'
+            self.current_sort_order = 'DESC'
 
     def load_items(self):
         """Loads the rated user items and updates the View."""
@@ -77,6 +91,12 @@ class RatingsController:
             else:
                 self.current_sort_order = 'ASC'
             logger.debug(f"Set sort column to: {self.current_sort_column}, order: {self.current_sort_order}")
+
+        try:
+            self.session_model.save_default_sort(self.current_sort_column, self.current_sort_order)
+            logger.info(f"New default sort ({self.current_sort_column} {self.current_sort_order}) saved to session.")
+        except Exception as e:
+            logger.exception("Failed to save default sort settings to session.", exc_info=True)
 
         self.load_items()
 

@@ -6,11 +6,20 @@ from kivy.app import App
 
 logger = logging.getLogger(__name__)
 
+SETTINGS_KEY = 'user_settings'
+DEFAULT_SORT_COLUMN = 'created_at'
+DEFAULT_SORT_ORDER = 'DESC'
+
 class SessionModel:
     def __init__(self):
         self._current_user_id = None
         self._current_username = None
+
         self.preferred_theme_style = "Light"
+
+        self.default_sort_column = DEFAULT_SORT_COLUMN
+        self.default_sort_order = DEFAULT_SORT_ORDER
+
         self.store = None
         logger.debug("Initializing SessionModel...")
 
@@ -86,20 +95,29 @@ class SessionModel:
         else:
              logger.warning("Cannot load theme preference, store is not available.")
 
-    def save_theme_style(self, theme_style):
-        """Saves the selected theme style to storage. Logs errors."""
-        if self.store is not None:
-            try:
-                self.store.put('theme_style', style=theme_style)
-                logger.info(f"Theme preference saved: {theme_style}")
-            except Exception as e:
-                logger.exception(f"Error saving theme preference '{theme_style}'")
-        else:
-            logger.error("Cannot save theme, session store not initialized.")
+    def _load_settings(self):
+        """Loads user settings (like default sort) from storage."""
+        if not self.store:
+            logger.warning("Cannot load settings, store is not available.")
+            return
 
-    def get_preferred_theme_style(self):
-        """Returns the loaded or default theme style."""
-        return self.preferred_theme_style
+        if self.store.exists(SETTINGS_KEY):
+            try:
+                settings = self.store.get(SETTINGS_KEY)
+                self.default_sort_column = settings.get('default_sort_column', DEFAULT_SORT_COLUMN)
+                self.default_sort_order = settings.get('default_sort_order', DEFAULT_SORT_ORDER)
+                logger.info(f"Settings loaded: Default sort {self.default_sort_column} {self.default_sort_order}")
+                if self.default_sort_order.upper() not in ['ASC', 'DESC']:
+                    logger.warning(
+                        f"Invalid default_sort_order '{self.default_sort_order}' loaded, resetting to default.")
+                    self.default_sort_order = DEFAULT_SORT_ORDER
+            except Exception as e:
+                logger.exception("Error loading settings from store. Using defaults.")
+                self.default_sort_column = DEFAULT_SORT_COLUMN
+                self.default_sort_order = DEFAULT_SORT_ORDER
+        else:
+            logger.info("No previous settings found in store. Using defaults.")
+            self.save_default_sort(self.default_sort_column, self.default_sort_order)
 
     def _save_session(self):
         """Saves current session data to storage. Logs errors."""
@@ -116,6 +134,55 @@ class SessionModel:
              logger.error("Cannot save session, store not initialized.")
         else:
             logger.debug("Session save condition not met (user data is None/empty). Session NOT saved.")
+
+    def save_theme_style(self, theme_style):
+        """Saves the selected theme style to storage. Logs errors."""
+        if self.store is not None:
+            try:
+                self.store.put('theme_style', style=theme_style)
+                logger.info(f"Theme preference saved: {theme_style}")
+            except Exception as e:
+                logger.exception(f"Error saving theme preference '{theme_style}'")
+        else:
+            logger.error("Cannot save theme, session store not initialized.")
+
+    def save_default_sort(self, column, order):
+        """Saves the new default sort settings."""
+        if not self.store:
+            logger.error("Cannot save settings, store not initialized.")
+            return False
+
+        self.default_sort_column = column
+        self.default_sort_order = order.upper()
+
+        try:
+            settings_data = {
+                'default_sort_column': self.default_sort_column,
+                'default_sort_order': self.default_sort_order,
+            }
+            self.store.put(SETTINGS_KEY, **settings_data)
+            logger.info(f"User settings saved: Default sort {column} {order}")
+            return True
+        except Exception as e:
+            logger.exception("Error saving settings to store.")
+            return False
+
+    def get_preferred_theme_style(self):
+        """Returns the loaded or default theme style."""
+        return self.preferred_theme_style
+
+    def get_default_sort(self):
+        """Returns the current default sort settings."""
+        return {
+            'column': self.default_sort_column,
+            'order': self.default_sort_order
+        }
+
+    def get_current_user_id(self):
+        return self._current_user_id
+
+    def get_current_username(self):
+        return self._current_username
 
     def _clear_session_data(self):
         """Clears session data in memory and storage. Logs errors."""
@@ -151,9 +218,3 @@ class SessionModel:
         logged_in = self._current_user_id is not None
         logger.debug(f"Checking login status: {logged_in}")
         return logged_in
-
-    def get_current_user_id(self):
-        return self._current_user_id
-
-    def get_current_username(self):
-        return self._current_username

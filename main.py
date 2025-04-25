@@ -34,8 +34,7 @@ class RateSphere(MDApp):
         self.menu_profile_data = []
 
         Window.fullscreen = "auto"
-        self.icon = "assets/icons/icon.png"
-
+        self.icon = "assets/icons/icon.icon"
         logger.info("-----------------------------------")
 
     def build(self):

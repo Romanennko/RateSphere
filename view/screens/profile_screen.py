@@ -2,25 +2,42 @@ import logging
 
 from kivymd.uix.list import MDListItem, MDListItemHeadlineText, MDListItemTertiaryText
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.menu import MDDropdownMenu
 
+from kivy.metrics import dp
 from kivymd.app import MDApp
 from kivy.properties import ColorProperty
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_SORT_COLUMNS = {
+     'created_at': 'Date Added',
+     'name': 'Name',
+     'item_type': 'Type',
+     'status': 'Status',
+     'rating': 'Rating',
+     'updated_at': 'Date Updated'
+ }
+ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
+
 class ProfileScreen(MDScreen):
     feedback_color = ColorProperty(None)
 
+    sort_column_menu = None
+    sort_order_menu = None
+
     def on_pre_enter(self, *args):
-        """Called before the screen becomes active. Load data and clear the password fields."""
+        """Load profile data, clear password fields, and update sort settings."""
         logger.debug(f"=====>> ENTERING screen: {self.name}")
         app = MDApp.get_running_app()
 
         self.clear_password_fields()
         self.show_password_feedback("")
+        self.show_settings_feedback("")
 
         if hasattr(app, 'profile_controller'):
             app.profile_controller.load_profile_data()
+            self._load_and_display_current_sort_settings()
         else:
              logger.error("ProfileScreen Error: profile_controller not found in app.")
         return super().on_pre_enter(*args)
@@ -131,6 +148,19 @@ class ProfileScreen(MDScreen):
         else:
             logger.warning("password_feedback_label ID not found in ProfileScreen.")
 
+    def show_settings_feedback(self, message, is_error=False):
+        """Displays a feedback message for settings actions."""
+        if hasattr(self.ids, 'settings_feedback_label'):
+            feedback_label = self.ids.settings_feedback_label
+            feedback_label.text = message
+            if is_error:
+                feedback_label.text_color = MDApp.get_running_app().theme_cls.errorColor
+            else:
+                feedback_label.text_color = MDApp.get_running_app().theme_cls.primaryColor
+            feedback_label.height = feedback_label.texture_size[1] if message else 0
+        else:
+            logger.warning("settings_feedback_label ID not found in ProfileScreen.")
+
     def clear_password_fields(self):
         """Clears the password input fields."""
         if hasattr(self.ids, 'current_password'):
@@ -140,3 +170,89 @@ class ProfileScreen(MDScreen):
         if hasattr(self.ids, 'confirm_password'):
             self.ids.confirm_password.text = ""
         logger.debug("Password fields cleared.")
+
+    def _load_and_display_current_sort_settings(self):
+        """Loads from the controller and shows the current sort settings."""
+        app = MDApp.get_running_app()
+        if not hasattr(app, 'profile_controller'): return
+
+        try:
+            current_settings = app.profile_controller.get_current_default_sort()
+            column_db_name = current_settings.get('column', 'created_at')
+            order = current_settings.get('order', 'DESC')
+
+            column_display_name = ALLOWED_SORT_COLUMNS.get(column_db_name, column_db_name)
+
+            if hasattr(self.ids, 'sort_column_button_text'):
+                self.ids.sort_column_button_text.text = column_display_name
+            if hasattr(self.ids, 'sort_order_button_text'):
+                self.ids.sort_order_button_text.text = order
+            logger.debug(f"Displayed current sort settings: {column_display_name} ({column_db_name}), {order}")
+        except Exception as e:
+            logger.exception("Error loading/displaying sort settings.")
+            self.show_settings_feedback("Error loading settings.", is_error=True)
+
+    def open_sort_column_menu(self, caller_widget):
+        """Opens the sorting column selection menu."""
+        if not self.sort_column_menu:
+            menu_items = [
+                {
+                    "text": display_name,
+                    "on_release": lambda x=db_name: self._set_default_sort_column(x),
+                } for db_name, display_name in ALLOWED_SORT_COLUMNS.items()
+            ]
+            self.sort_column_menu = MDDropdownMenu(
+                caller=caller_widget, items=menu_items, max_height=dp(200)
+            )
+        self.sort_column_menu.caller = caller_widget
+        self.sort_column_menu.open()
+
+    def open_sort_order_menu(self, caller_widget):
+        """Opens the sort order selection menu."""
+        if not self.sort_order_menu:
+            menu_items = [
+                {
+                    "text": order,
+                    "on_release": lambda x=order: self._set_default_sort_order(x),
+                } for order in ALLOWED_SORT_ORDERS
+            ]
+            self.sort_order_menu = MDDropdownMenu(
+                caller=caller_widget, items=menu_items
+            )
+        self.sort_order_menu.caller = caller_widget
+        self.sort_order_menu.open()
+
+    def _set_default_sort_column(self, selected_column_db_name):
+        """Called when a column is selected. Updates the button and saves it."""
+        display_name = ALLOWED_SORT_COLUMNS.get(selected_column_db_name, selected_column_db_name)
+        if hasattr(self.ids, 'sort_column_button_text'):
+            self.ids.sort_column_button_text.text = display_name
+
+        current_order = "DESC"
+        if hasattr(self.ids, 'sort_order_button_text'):
+            current_order = self.ids.sort_order_button_text.text
+
+        app = MDApp.get_running_app()
+        if hasattr(app, 'profile_controller'):
+            app.profile_controller.save_default_sort(selected_column_db_name, current_order)
+        self.sort_column_menu.dismiss()
+
+    def _set_default_sort_order(self, selected_order):
+        """Called when an order is selected. Updates the button and saves it."""
+        if hasattr(self.ids, 'sort_order_button_text'):
+            self.ids.sort_order_button_text.text = selected_order
+        current_column_display_name = "Date Added"
+
+        if hasattr(self.ids, 'sort_column_button_text'):
+            current_column_display_name = self.ids.sort_column_button_text.text
+        current_column_db_name = 'created_at'
+
+        for db_name, display_name in ALLOWED_SORT_COLUMNS.items():
+            if display_name == current_column_display_name:
+                current_column_db_name = db_name
+                break
+
+        app = MDApp.get_running_app()
+        if hasattr(app, 'profile_controller'):
+            app.profile_controller.save_default_sort(current_column_db_name, selected_order)
+        self.sort_order_menu.dismiss()

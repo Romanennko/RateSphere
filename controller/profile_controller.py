@@ -6,6 +6,9 @@ from model.session_model import SessionModel
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_SORT_COLUMNS = ['name', 'item_type', 'status', 'rating', 'created_at', 'updated_at']
+ALLOWED_SORT_ORDERS = ['ASC', 'DESC']
+
 class ProfileController:
     data_model: DatabaseModel
     session_model: SessionModel
@@ -173,3 +176,43 @@ class ProfileController:
         except Exception as e:
             logger.exception(f"Unexpected error updating password for user {user_id}: {e}")
             self.view.show_password_feedback("An unexpected error occurred saving password.", is_error=True)
+
+    def get_current_default_sort(self):
+        """Returns the current default sort settings from the session."""
+        settings = self.session_model.get_default_sort()
+        logger.debug(f"Getting default sort settings: {settings}")
+        return settings
+
+    def save_default_sort(self, column, order):
+        """
+        Validates and saves the new default sort settings.
+        Calls the method in the view to display the result.
+        """
+        logger.info(f"Attempting to save default sort: Column='{column}', Order='{order}'")
+
+        if column not in ALLOWED_SORT_COLUMNS:
+            logger.warning(f"Invalid sort column provided: '{column}'")
+            if hasattr(self.view, 'show_settings_feedback'):
+                self.view.show_settings_feedback(f"Invalid column: {column}", is_error=True)
+            return
+
+        order_upper = order.upper()
+        if order_upper not in ALLOWED_SORT_ORDERS:
+            logger.warning(f"Invalid sort order provided: '{order}'")
+            if hasattr(self.view, 'show_settings_feedback'):
+                self.view.show_settings_feedback(f"Invalid order: {order}", is_error=True)
+            return
+
+        try:
+            success = self.session_model.save_default_sort(column, order_upper)
+            if success:
+                logger.info(f"Default sort settings saved successfully: {column} {order_upper}")
+                if hasattr(self.view, 'show_settings_feedback'):
+                    self.view.show_settings_feedback("Default sort saved!", is_error=False)
+            else:
+                if hasattr(self.view, 'show_settings_feedback'):
+                    self.view.show_settings_feedback("Error saving settings.", is_error=True)
+        except Exception as e:
+            logger.exception(f"Unexpected error saving default sort settings: {e}")
+            if hasattr(self.view, 'show_settings_feedback'):
+                self.view.show_settings_feedback("Unexpected error saving settings.", is_error=True)
